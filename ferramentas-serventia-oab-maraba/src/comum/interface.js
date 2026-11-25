@@ -45,17 +45,62 @@ export function limpar(no) {
 }
 
 let temporizadorAviso = null;
-export function avisar(mensagem, tipo = 'info') {
-  let caixa = document.getElementById('aviso-flutuante');
-  if (!caixa) {
-    caixa = el('div', { id: 'aviso-flutuante', role: 'status', 'aria-live': 'polite' });
-    document.body.append(caixa);
+// Duas regiões persistentes: uma para status (educada) e outra para erro (alerta). O papel nunca muda.
+function regiaoAviso(id, papel) {
+  let r = document.getElementById(id);
+  if (!r) {
+    r = el('div', { id, role: papel, 'aria-live': papel === 'alert' ? 'assertive' : 'polite', class: 'aviso-flutuante', hidden: true });
+    document.body.append(r);
   }
+  return r;
+}
+
+export function avisar(mensagem, tipo = 'info') {
+  const erro = tipo === 'erro';
+  const caixa = regiaoAviso(erro ? 'aviso-flutuante-erro' : 'aviso-flutuante', erro ? 'alert' : 'status');
+  const outra = document.getElementById(erro ? 'aviso-flutuante' : 'aviso-flutuante-erro');
+  if (outra) outra.hidden = true;
   caixa.className = `aviso-flutuante ${tipo}`;
   caixa.textContent = mensagem;
   caixa.hidden = false;
   clearTimeout(temporizadorAviso);
-  temporizadorAviso = setTimeout(() => { caixa.hidden = true; }, tipo === 'erro' ? 7000 : 3500);
+  temporizadorAviso = setTimeout(() => { caixa.hidden = true; }, erro ? 12000 : 4000);
+}
+
+// Caixa de erros anunciada ao leitor de tela e com foco (WCAG 3.3.1).
+export function mostrarErros(alvo, erros) {
+  limpar(alvo);
+  if (!erros || !erros.length) return;
+  const caixa = el('div', { class: 'alerta-caixa', role: 'alert', tabindex: -1 },
+    el('strong', {}, 'Corrija antes de salvar:'), ...erros.map((e) => el('div', {}, e)));
+  alvo.append(caixa);
+  caixa.focus();
+}
+
+// Abas: só a aba selecionada entra no Tab; as setas trocam de aba (padrão ARIA de abas).
+export function atualizarAbas(lista) {
+  if (!lista) return;
+  for (const t of lista.querySelectorAll('[role=tab]')) t.tabIndex = t.getAttribute('aria-selected') === 'true' ? 0 : -1;
+}
+
+// manual: true faz as setas só moverem o foco; a aba é ativada com Enter ou Espaço.
+export function ligarAbasTeclado(lista, { manual = false } = {}) {
+  if (!lista) return;
+  lista.addEventListener('keydown', (ev) => {
+    const abas = [...lista.querySelectorAll('[role=tab]')];
+    const i = abas.indexOf(document.activeElement);
+    if (i < 0) return;
+    let j = null;
+    if (ev.key === 'ArrowRight') j = (i + 1) % abas.length;
+    else if (ev.key === 'ArrowLeft') j = (i - 1 + abas.length) % abas.length;
+    else if (ev.key === 'Home') j = 0;
+    else if (ev.key === 'End') j = abas.length - 1;
+    if (j === null) return;
+    ev.preventDefault();
+    if (manual) { abas.forEach((t) => { t.tabIndex = t === abas[j] ? 0 : -1; }); abas[j].focus(); return; }
+    abas[j].click();
+    abas[j].focus();
+  });
 }
 
 export function abrirDialogo(id) {

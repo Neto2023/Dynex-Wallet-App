@@ -16,7 +16,8 @@ export function tipoMinutaPelaTarefa(tarefa) {
   return null;
 }
 
-export function novoProcesso(dados = {}, modulo = 'secretaria') {
+// doParser: true só quando o processo nasce do reconhecimento. Ao restaurar sessão, sugestões não viram preferência.
+export function novoProcesso(dados = {}, modulo = 'secretaria', { doParser = false } = {}) {
   const mod = MODULOS[modulo] ? modulo : 'secretaria';
   const p = {
     numero: String(dados.numero || '').trim(),
@@ -35,6 +36,7 @@ export function novoProcesso(dados = {}, modulo = 'secretaria') {
     preferenciaConfirmada: !!dados.preferenciaConfirmada,
     sugestoesPreferencia: Array.isArray(dados.sugestoesPreferencia) ? [...dados.sugestoesPreferencia] : [],
     sugestaoSigiloso: !!dados.sugestaoSigiloso,
+    sugestoesRevisadas: !!dados.sugestoesRevisadas,
     ordemDefinidaPeloJuiz: Number.isInteger(dados.ordemDefinidaPeloJuiz) ? dados.ordemDefinidaPeloJuiz : null,
     metaCNJ: mod === 'gabinete' ? !!dados.metaCNJ : false,
     tipoMinuta: mod === 'gabinete' && TIPOS_MINUTA[dados.tipoMinuta] ? dados.tipoMinuta : (mod === 'gabinete' ? 'despacho' : null),
@@ -44,7 +46,7 @@ export function novoProcesso(dados = {}, modulo = 'secretaria') {
     observacao: String(dados.observacao || ''),
   };
   // Sugestões do parser não viram preferência sozinhas: ficam guardadas até a confirmação.
-  if (!p.preferencias.length && !p.preferenciaConfirmada && p.sugestoesPreferencia.length) {
+  if (doParser && !p.preferencias.length && !p.preferenciaConfirmada && p.sugestoesPreferencia.length) {
     p.preferencias = [...p.sugestoesPreferencia];
   }
   return p;

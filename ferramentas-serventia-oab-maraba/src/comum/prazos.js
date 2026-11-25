@@ -21,6 +21,16 @@ export const CONTAGEM_PADRAO = Object.freeze({
   suspensoes: [],    // [{ inicio: "2026-12-20", fim: "2027-01-20" }, ...]
 });
 
+// Normaliza a contagem vinda de perfil ou sessão: datas em dd/mm/aaaa ou ISO viram AAAA-MM-DD; o inválido sai.
+export function normalizarContagem(c = {}) {
+  const dia = (x) => { const d = lerData(x); return d ? d.slice(0, 10) : null; };
+  const feriados = [...new Set((Array.isArray(c.feriados) ? c.feriados : []).map(dia).filter(Boolean))].sort();
+  const suspensoes = (Array.isArray(c.suspensoes) ? c.suspensoes : [])
+    .map((s) => ({ inicio: dia(s && s.inicio), fim: dia(s && s.fim) }))
+    .filter((s) => s.inicio && s.fim);
+  return { modo: c.modo === 'corridos' ? 'corridos' : 'uteis', feriados, suspensoes };
+}
+
 export function prepararContagem(config = {}) {
   const modo = config.modo === 'corridos' ? 'corridos' : 'uteis';
   const feriados = new Set();

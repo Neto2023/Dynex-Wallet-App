@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = dirname(fileURLToPath(import.meta.url));
-export const VERSAO = 'v1';
+export const VERSAO = 'v2';
 
 const COMUM = ['src/comum/datas.js', 'src/comum/prazos.js', 'src/comum/mascara.js', 'src/comum/parser.js', 'src/comum/exporta.js', 'src/comum/interface.js'];
 
@@ -23,7 +23,7 @@ export const FERRAMENTAS = [
   {
     saida: `atos-em-lote_${VERSAO}.html`,
     html: 'src/atos-lote/index.html',
-    js: [...COMUM, 'src/atos-lote/catalogo-prov-006-2006.js', 'src/atos-lote/modelos.js', 'src/atos-lote/gerador.js', 'src/atos-lote/ui.js'],
+    js: [...COMUM, 'src/atos-lote/catalogo-prov-006-2006.js', 'src/atos-lote/modelos.js', 'src/atos-lote/gerador.js', 'src/atos-lote/selecao.js', 'src/atos-lote/ui.js'],
     textos: { EXEMPLO_LOTE: 'test/fixtures/lote_xv_ficticio.txt' },
   },
 ];
@@ -72,21 +72,23 @@ export function construir({ sobrescrever = false, destino = join(RAIZ, 'dist') }
   mkdirSync(destino, { recursive: true });
   const css = ler('src/comum/estilo.css');
   const logo = 'data:image/png;base64,' + readFileSync(join(RAIZ, 'src/comum/logo_oab.png')).toString('base64');
-  const gerados = [];
+  // Verifica todas as saídas antes de gravar qualquer arquivo (achado C-10): nada de dist/ com versões misturadas.
+  const existentes = FERRAMENTAS.map((f) => f.saida).filter((s) => existsSync(join(destino, s)));
+  if (existentes.length && !sobrescrever) {
+    throw new Error(`${existentes.join(', ')} já existe em dist/. Arquivo entregue não se sobrescreve: altere VERSAO em build.mjs ou use --sobrescrever durante o desenvolvimento.`);
+  }
+  const prontos = [];
   for (const f of FERRAMENTAS) {
     const caminho = join(destino, f.saida);
-    if (existsSync(caminho) && !sobrescrever) {
-      throw new Error(`${f.saida} já existe em dist/. Arquivo entregue não se sobrescreve: altere VERSAO em build.mjs ou use --sobrescrever durante o desenvolvimento.`);
-    }
     const js = montarJS(f);
     let html = ler(f.html);
     html = html.replace('/*__CSS__*/', () => css).replace('/*__JS__*/', () => js).replaceAll('__LOGO__', () => logo).replaceAll('__VERSAO__', VERSAO);
     const erros = verificarSaida(f.saida, html);
     if (erros.length) throw new Error(erros.join('\n'));
-    writeFileSync(caminho, html, 'utf8');
-    gerados.push({ arquivo: caminho, bytes: Buffer.byteLength(html) });
+    prontos.push({ caminho, html });
   }
-  return gerados;
+  for (const { caminho, html } of prontos) writeFileSync(caminho, html, 'utf8');
+  return prontos.map(({ caminho, html }) => ({ arquivo: caminho, bytes: Buffer.byteLength(html) }));
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

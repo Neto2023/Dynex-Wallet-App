@@ -1,7 +1,9 @@
 // Exportações locais. Nada é enviado: os arquivos são gerados no navegador e baixados pelo próprio usuário.
 
+// Célula que começa com = + - @ (ou tabulação/CR) seria lida como fórmula pelo Excel: recebe um apóstrofo antes.
 export function celulaCSV(v, sep = ';') {
-  const s = v === null || v === undefined ? '' : String(v);
+  let s = v === null || v === undefined ? '' : String(v);
+  if (/^\s*[=+\-@]/.test(s) || /^[\t\r]/.test(s)) s = "'" + s;
   if (s.includes('"') || s.includes(sep) || /[\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }

@@ -211,7 +211,7 @@ export const CAMPOS_MAPEAMENTO = Object.freeze([
 export function sugerirMapeamento(cabecalho) {
   const mapa = {};
   const testes = {
-    numero: /processo|numero|n[ºo°]/,
+    numero: /processo|numero|^n\s*\.?\s*[º°o]\s*$|^n\s*\.?\s*[º°]/,
     dataEntrada: /entrada|data|desde|recebid/,
     tarefa: /tarefa/,
     providencia: /providencia/,
@@ -237,14 +237,24 @@ export function criarPerfilMapeamento(mapa, cabecalho, temCabecalho) {
   return { tipo: 'perfil-mapeamento', versao: 1, temCabecalho: !!temCabecalho, colunas };
 }
 
-export function aplicarPerfilMapeamento(perfil, cabecalho) {
+// Índice vazio, inválido ou fora da tabela vira -1 ("não usar"). Nunca cai na coluna 0 por acaso.
+export function normalizarMapa(mapa, ncol) {
+  const out = {};
+  for (const [chave, v] of Object.entries(mapa || {})) {
+    const n = v === '' || v === null || v === undefined ? NaN : Number(v);
+    out[chave] = Number.isInteger(n) && n >= 0 && n < ncol ? n : -1;
+  }
+  return out;
+}
+
+export function aplicarPerfilMapeamento(perfil, cabecalho, ncol = (cabecalho || []).length) {
   const mapa = {};
   const nomes = (cabecalho || []).map((c) => normalizarBusca(c).trim());
   for (const [chave, col] of Object.entries(perfil?.colunas || {})) {
     const porNome = col.nome ? nomes.indexOf(normalizarBusca(col.nome).trim()) : -1;
     mapa[chave] = porNome >= 0 ? porNome : col.indice;
   }
-  return mapa;
+  return normalizarMapa(mapa, ncol);
 }
 
 export function aplicarMapeamento(linhas, mapa, { temCabecalho = true } = {}) {

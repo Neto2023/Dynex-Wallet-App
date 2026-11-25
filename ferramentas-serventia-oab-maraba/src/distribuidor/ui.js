@@ -1,9 +1,9 @@
-import { $, $$, el, anexar, limpar, avisar, abrirDialogo, fecharDialogo, ligarFechamentoDialogos, ligarTamanhoFonte, escolherArquivo, imprimirConteudo } from '../comum/interface.js';
+import { $, $$, el, anexar, limpar, mostrarErros, atualizarAbas, ligarAbasTeclado, avisar, abrirDialogo, fecharDialogo, ligarFechamentoDialogos, ligarTamanhoFonte, escolherArquivo, imprimirConteudo } from '../comum/interface.js';
 import { baixarArquivo, lerArquivoTexto, carimboArquivo, prefLer, prefGravar } from '../comum/exporta.js';
 import { formatarDataBR, lerData, hojeISO, agoraISO, montarISO, partesISO, pad2 } from '../comum/datas.js';
-import { lerFeriados, lerSuspensoes, feriadosParaTexto, suspensoesParaTexto, FERIADOS_NACIONAIS_2026, ROTULOS_228 } from '../comum/prazos.js';
+import { normalizarContagem, lerFeriados, lerSuspensoes, feriadosParaTexto, suspensoesParaTexto, FERIADOS_NACIONAIS_2026, ROTULOS_228 } from '../comum/prazos.js';
 import { numeroPublico } from '../comum/mascara.js';
-import { reconhecerTextoLivre, lerTabela, aplicarMapeamento, sugerirMapeamento, criarPerfilMapeamento, aplicarPerfilMapeamento, CAMPOS_MAPEAMENTO, RE_CNJ } from '../comum/parser.js';
+import { reconhecerTextoLivre, lerTabela, aplicarMapeamento, sugerirMapeamento, normalizarMapa, criarPerfilMapeamento, aplicarPerfilMapeamento, CAMPOS_MAPEAMENTO, RE_CNJ } from '../comum/parser.js';
 import { novoProcesso, tipoMinutaPelaTarefa, MODULOS, TIPOS_MINUTA } from './processo.js';
 import { ROTULOS_LISTA, ROTULOS_PREFERENCIA, rotuloPreferencia } from './ordenacao.js';
 import { distribuir, aplicarDistribuicao, contarPorResponsavel, normalizarServidores, compararNomes } from './distribuicao.js';
@@ -70,7 +70,9 @@ function renderizarAbasModulo() {
   $$('[data-modulo]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.modulo === estadoDist.modulo)));
   const gab = estadoDist.modulo === 'gabinete';
   $('#previa-minuta-campo').hidden = !gab;
-  $('#previa-tipo-prazo').value = MODULOS[estadoDist.modulo].tipoPrazoPadrao;
+  const abaModulo = $(`[data-modulo="${estadoDist.modulo}"]`);
+  if (abaModulo) $('#painel-modulo').setAttribute('aria-labelledby', abaModulo.id);
+  atualizarAbas($('.modulos [role=tablist]'));
 }
 
 function renderizarContadores() {
@@ -105,6 +107,7 @@ function entradasDaLista() {
 function celulaProcesso(p) {
   return el('td', {},
     el('span', { class: 'num' }, p.numero),
+    el('div', {}, el('button', { type: 'button', class: 'discreto editar', 'aria-label': `Editar ${p.numero}` }, 'Editar')),
     p.sigiloso ? el('div', {}, el('span', { class: 'selo sigilo' }, 'SIGILOSO')) : null);
 }
 
@@ -126,6 +129,8 @@ function celulaLista(e) {
 
 function renderizarLista() {
   $$('#abas-listas [data-lista]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.lista === estadoDist.lista)));
+  atualizarAbas($('#abas-listas'));
+  $('#painel-lista').setAttribute('aria-labelledby', $('#abas-listas [aria-selected=true]').id);
   const barra = $('#barra-servidor');
   barra.hidden = estadoDist.lista !== 'servidor';
   if (estadoDist.lista === 'servidor') {
@@ -146,7 +151,7 @@ function renderizarLista() {
   }
   for (const e of entradas) {
     const p = e.processo;
-    const tr = el('tr', { class: 'clicavel', tabindex: 0, dataset: { numero: p.numero }, title: 'Clique para editar' },
+    const tr = el('tr', { class: 'clicavel', dataset: { numero: p.numero }, title: 'Clique para editar' },
       el('td', { class: 'dias' }, String(e.ordemExibida)),
       celulaProcesso(p),
       celulaProvidencia(p),
@@ -179,7 +184,7 @@ function renderizarServidores() {
       el('td', {}, s.nome),
       el('td', {}, fator, ' %'),
       el('td', { class: 'dias' }, String(contagem[s.nome] ?? 0)),
-      el('td', {}, el('button', { type: 'button', class: 'discreto', onclick: () => removerServidor(i) }, 'Remover'))));
+      el('td', {}, el('button', { type: 'button', class: 'discreto', 'aria-label': `Remover ${s.nome}`, onclick: () => removerServidor(i) }, 'Remover'))));
   });
   const r = $('#resumo-distribuicao');
   r.hidden = !mod.resumo;
@@ -193,6 +198,7 @@ function mostrarEntrada(tipo) {
   $('#entrada-texto').hidden = tipo !== 'texto';
   $('#entrada-tabela').hidden = tipo !== 'tabela';
   $('#entrada-manual').hidden = tipo !== 'manual';
+  atualizarAbas($('#cartao-entrada [role=tablist]'));
 }
 
 function abrirPrevia(resultado) {
@@ -288,7 +294,7 @@ function aceitarPrevia() {
       numero: it.numero, dataEntrada: it.dataEntrada, tarefa, providencia: it.providencia || tarefa, etiquetas: it.etiquetas,
       sugestoesPreferencia: it.sugestoesPreferencia, sugestaoSigiloso: it.sugestaoSigiloso, tipoPrazo228,
       tipoMinuta: tipoMinuta === 'pela_tarefa' ? (tipoMinutaPelaTarefa(tarefa) || 'despacho') : tipoMinuta,
-    }, estadoDist.modulo);
+    }, estadoDist.modulo, { doParser: true });
     mod.processos.push(p);
     porNumero.set(p.numero, p);
     incluidos++;
@@ -309,7 +315,7 @@ function lerTabelaColada(texto) {
   estadoDist.tabela = t;
   const cab = t.linhas[0];
   const mapa = estadoDist.config.perfilMapeamento
-    ? aplicarPerfilMapeamento(estadoDist.config.perfilMapeamento, cab)
+    ? aplicarPerfilMapeamento(estadoDist.config.perfilMapeamento, cab, Math.max(...t.linhas.map((l) => l.length)))
     : sugerirMapeamento(cab);
   if (estadoDist.config.perfilMapeamento) $('#chk-cabecalho').checked = !!estadoDist.config.perfilMapeamento.temCabecalho;
   renderizarMapeamento(mapa);
@@ -327,15 +333,17 @@ function renderizarMapeamento(mapa) {
       const nome = $('#chk-cabecalho').checked && cab[i] ? `${i + 1}: ${cab[i]}` : `Coluna ${i + 1} (ex.: ${String(cab[i] ?? '').slice(0, 18)})`;
       sel.append(el('option', { value: i }, nome));
     }
-    sel.value = String(mapa[campo.chave] ?? -1);
+    const idx = Number.isInteger(mapa[campo.chave]) && mapa[campo.chave] < ncol ? mapa[campo.chave] : -1;
+    sel.value = String(idx);
     alvo.append(el('label', { class: 'campo' }, el('span', {}, campo.rotulo + (campo.obrigatorio ? ' *' : '')), sel));
   }
 }
 
 function mapaAtual() {
   const mapa = {};
-  $$('#mapa-campos select').forEach((s) => { mapa[s.dataset.campo] = Number(s.value); });
-  return mapa;
+  $$('#mapa-campos select').forEach((s) => { mapa[s.dataset.campo] = s.value; });
+  const ncol = estadoDist.tabela ? Math.max(...estadoDist.tabela.linhas.map((l) => l.length)) : 0;
+  return normalizarMapa(mapa, ncol);
 }
 
 function aplicarMapeamentoAtual() {
@@ -481,9 +489,12 @@ function salvarEdicao() {
   const ordem = ordemTxt ? Number(ordemTxt) : null;
   if (ordemTxt && !(Number.isInteger(ordem) && ordem >= 1)) erros.push('A ordem definida pelo juiz deve ser um número inteiro a partir de 1.');
   const data = $('#ed-data').value;
-  const dataEntrada = data ? lerData(`${data}T${$('#ed-hora').value || '00:00'}`) : null;
+  const hora = $('#ed-hora').value || '00:00';
+  const original = p.dataEntrada ? partesISO(p.dataEntrada) : null;
+  const inalterada = original && data === `${original.a}-${pad2(original.m)}-${pad2(original.d)}` && hora === `${pad2(original.h)}:${pad2(original.mi)}`;
+  const dataEntrada = inalterada ? p.dataEntrada : (data ? lerData(`${data}T${hora}`) : null);
   if (erros.length) {
-    limpar($('#ed-erros')).append(el('div', { class: 'alerta-caixa' }, ...erros.map((e) => el('div', {}, e))));
+    mostrarErros($('#ed-erros'), erros);
     return;
   }
   p.sigiloso = $('#ed-sigiloso').checked;
@@ -499,6 +510,7 @@ function salvarEdicao() {
   p.responsavel = $('#ed-responsavel').value || null;
   p.responsavelFixado = $('#ed-fixado').checked && !!p.responsavel;
   p.observacao = $('#ed-obs').value;
+  p.sugestoesRevisadas = true;
   fecharDialogo('dlg-processo');
   renderizarTudo();
   avisar('Processo atualizado.', 'ok');
@@ -571,7 +583,7 @@ function aplicarConfig() {
   const s = lerSuspensoes($('#cfg-suspensoes').value);
   const erros = [...f.erros, ...s.erros];
   if (erros.length) {
-    limpar($('#cfg-erros')).append(el('div', { class: 'alerta-caixa' }, ...erros.map((e) => el('div', {}, e))));
+    mostrarErros($('#cfg-erros'), erros);
     return;
   }
   const modo = $$('input[name="modo-contagem"]').find((r) => r.checked)?.value || 'uteis';
@@ -590,19 +602,14 @@ function perfilAtual() {
 function aplicarPerfil(dados) {
   if (!dados || (dados.tipo !== 'perfil-vara-distribuidor' && dados.tipo !== 'perfil-mapeamento')) throw new Error('Arquivo não é um perfil desta ferramenta.');
   if (dados.tipo === 'perfil-mapeamento') { estadoDist.config.perfilMapeamento = dados; return; }
-  const c = dados.contagem || {};
-  estadoDist.config.contagem = {
-    modo: c.modo === 'corridos' ? 'corridos' : 'uteis',
-    feriados: Array.isArray(c.feriados) ? c.feriados.filter((x) => lerData(x)) : [],
-    suspensoes: Array.isArray(c.suspensoes) ? c.suspensoes.filter((x) => x && lerData(x.inicio) && lerData(x.fim)) : [],
-  };
+  estadoDist.config.contagem = normalizarContagem(dados.contagem || {});
   if (dados.perfilMapeamento) estadoDist.config.perfilMapeamento = dados.perfilMapeamento;
 }
 
 function sessaoAtual() {
   return {
     tipo: 'sessao-distribuidor-tarefas',
-    versaoFormato: 1,
+    versaoFormato: 2,
     ferramenta: 'Distribuidor de Tarefas da Serventia __VERSAO__',
     salvoEm: agoraISO(),
     aviso: 'Arquivo de trabalho da vara. Contém números de processo: não compartilhe fora da unidade.',
@@ -647,11 +654,18 @@ async function abrirJSON(acao) {
 function ligarEventosDistribuidor() {
   ligarFechamentoDialogos();
   ligarTamanhoFonte('bt-fonte-menos', 'bt-fonte-mais');
+  ligarAbasTeclado($('.modulos [role=tablist]'), { manual: true });
+  ligarAbasTeclado($('#cartao-entrada [role=tablist]'));
+  ligarAbasTeclado($('#abas-listas'));
+  atualizarAbas($('#cartao-entrada [role=tablist]'));
   $('#texto-regra').textContent = TEXTO_REGRA;
   $('#rodape').textContent = TEXTO_RODAPE;
 
   $$('[data-modulo]').forEach((b) => b.addEventListener('click', () => {
+    if (b.dataset.modulo === estadoDist.modulo) return;
+    if (estadoDist.previa && !confirm('Há uma prévia ainda não aceita. Trocar de módulo e descartá-la?')) return;
     estadoDist.modulo = b.dataset.modulo;
+    $('#previa-tipo-prazo').value = MODULOS[estadoDist.modulo].tipoPrazoPadrao;
     estadoDist.previa = null;
     $('#previa').hidden = true;
     prefGravar('distribuidor-modulo', estadoDist.modulo);
@@ -696,7 +710,7 @@ function ligarEventosDistribuidor() {
     aplicarPerfil(d.tipo === 'perfil-mapeamento' ? d : { ...d });
     if (estadoDist.tabela) {
       $('#chk-cabecalho').checked = !!estadoDist.config.perfilMapeamento?.temCabecalho;
-      renderizarMapeamento(aplicarPerfilMapeamento(estadoDist.config.perfilMapeamento, estadoDist.tabela.linhas[0]));
+      renderizarMapeamento(aplicarPerfilMapeamento(estadoDist.config.perfilMapeamento, estadoDist.tabela.linhas[0], Math.max(...estadoDist.tabela.linhas.map((l) => l.length))));
     }
   }));
   $('#bt-incluir-manual').addEventListener('click', incluirManual);
@@ -711,16 +725,12 @@ function ligarEventosDistribuidor() {
     const tr = ev.target.closest('tr[data-numero]');
     if (tr) abrirEdicao(tr.dataset.numero);
   });
-  $('#lista-corpo').addEventListener('keydown', (ev) => {
-    const tr = ev.target.closest('tr[data-numero]');
-    if (tr && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); abrirEdicao(tr.dataset.numero); }
-  });
   $('#bt-salvar-processo').addEventListener('click', salvarEdicao);
   $('#bt-remover-processo').addEventListener('click', removerProcesso);
 
   $('#bt-imprimir-lista').addEventListener('click', imprimirLista);
   $('#bt-csv-lista').addEventListener('click', () => exportarCSV(entradasDaLista(), estadoDist.lista === 'servidor' ? `fila-${estadoDist.servidorFila}` : estadoDist.lista));
-  $('#bt-csv-completo').addEventListener('click', () => exportarCSV(estadoDist.painel.sequencia, 'completo'));
+  $('#bt-csv-completo').addEventListener('click', () => exportarCSV(estadoDist.painel.sequencia.map((e) => ({ ...e, ordemExibida: e.posicao })), 'completo'));
   $('#bt-limpar-modulo').addEventListener('click', () => {
     if (!confirm(`Esvaziar o módulo ${MODULOS[estadoDist.modulo].rotulo}? Processos e servidores deste módulo saem da ferramenta (nada muda no PJe). Salve a sessão antes, se precisar.`)) return;
     estadoDist.dados[estadoDist.modulo] = { processos: [], servidores: [], resumo: '' };
@@ -738,7 +748,7 @@ function ligarEventosDistribuidor() {
   $('#bt-sobre').addEventListener('click', () => abrirDialogo('dlg-sobre'));
   $('#bt-salvar-sessao').addEventListener('click', () => {
     baixarArquivo(`sessao-distribuidor_${carimboArquivo()}.json`, JSON.stringify(sessaoAtual(), null, 2), 'application/json');
-    avisar('Sessão salva no arquivo baixado. Guarde-o na pasta da vara.', 'ok');
+    avisar('Sessão salva. Guarde o arquivo na pasta da vara e apague a cópia de Downloads: ele contém números de processo, inclusive de sigilosos.', 'ok');
   });
   $('#bt-abrir-sessao').addEventListener('click', () => {
     if (temDados() && !confirm('Abrir outra sessão substitui os dados atuais. Continuar?')) return;
@@ -753,6 +763,7 @@ function ligarEventosDistribuidor() {
   if (MODULOS[modSalvo]) estadoDist.modulo = modSalvo;
   const listaSalva = prefLer('distribuidor-lista', 'urgencia');
   if (['urgencia', 'preferencia', 'geral', 'todas', 'servidor'].includes(listaSalva)) estadoDist.lista = listaSalva;
+  $('#previa-tipo-prazo').value = MODULOS[estadoDist.modulo].tipoPrazoPadrao;
   renderizarTudo();
 }
 

@@ -1,9 +1,11 @@
 // Teste ponta a ponta das duas ferramentas abertas via file:// com a rede desligada.
-// Uso: node test/e2e/offline.e2e.mjs   (requer o Playwright já instalado no ambiente)
-// Gera capturas de tela em docs/screenshots/.
+// Uso: node test/e2e/offline.e2e.mjs [--sobrescrever-capturas]   (requer o Playwright já instalado)
+// Gera capturas de tela em docs/screenshots/<versão>/. Capturas entregues não se sobrescrevem: se a pasta
+// da versão já existe, o teste para, salvo com --sobrescrever-capturas (só durante o desenvolvimento).
 
 import { createRequire } from 'node:module';
-import { readFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, existsSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
@@ -13,10 +15,14 @@ const { chromium } = require('playwright');
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DIST = join(RAIZ, 'dist');
-const FOTOS = join(RAIZ, 'docs', 'screenshots');
+const { VERSAO } = await import(pathToFileURL(join(RAIZ, 'build.mjs')).href);
+const PASTA_VERSAO = join(RAIZ, 'docs', 'screenshots', VERSAO);
+// Capturas entregues não se sobrescrevem: se a pasta da versão já existe, as verificações rodam normalmente
+// e as capturas vão para uma pasta temporária (salvo --sobrescrever-capturas, só em versão não entregue).
+const FOTOS = existsSync(PASTA_VERSAO) && !process.argv.includes('--sobrescrever-capturas')
+  ? mkdtempSync(join(tmpdir(), `capturas-${VERSAO}-`))
+  : PASTA_VERSAO;
 mkdirSync(FOTOS, { recursive: true });
-
-const VERSAO = 'v1';
 const ARQ_DIST = join(DIST, `distribuidor-tarefas_${VERSAO}.html`);
 const ARQ_ATOS = join(DIST, `atos-em-lote_${VERSAO}.html`);
 
@@ -136,7 +142,7 @@ async function baixar(page, seletor) {
   assert.ok(!ls.includes('0000'), 'localStorage não guarda número de processo');
 
   await page.click('#abas-listas [data-lista="todas"]');
-  await page.evaluate(() => { window.scrollTo(0, 0); const a = document.getElementById('aviso-flutuante'); if (a) a.hidden = true; const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
+  await page.evaluate(() => { window.scrollTo(0, 0); for (const id of ['aviso-flutuante', 'aviso-flutuante-erro']) { const a = document.getElementById(id); if (a) a.hidden = true; } const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
   await page.screenshot({ path: join(FOTOS, `distribuidor-tarefas_${VERSAO}_secretaria.png`), fullPage: true });
 
   // Gabinete com o exemplo em tabela
@@ -144,9 +150,16 @@ async function baixar(page, seletor) {
   await page.click('[data-entrada="tabela"]');
   await page.click('#bt-exemplo-tabela');
   await page.click('#bt-aplicar-mapa');
+  await page.selectOption('#previa-tipo-prazo', 'conclusao_1dia');
+  await page.click('#bt-config');
+  await page.click('#bt-aplicar-config'); // redesenha a tela inteira
+  assert.equal(await page.inputValue('#previa-tipo-prazo'), 'conclusao_1dia', 'C-04: escolha do prazo mantida');
   await page.click('#bt-aceitar-previa');
+  const sessaoGab = JSON.parse((await baixar(page, '#bt-salvar-sessao')).texto);
+  assert.ok(sessaoGab.modulos.gabinete.processos.every((p) => p.tipoPrazo228 === 'conclusao_1dia'), 'C-04: processos entram com o prazo escolhido');
+  assert.equal(sessaoGab.modulos.gabinete.processos.find((p) => p.numero.startsWith('0000101')).tipoMinuta, 'sentenca');
   assert.equal(await page.textContent('[data-cont="geral"]'), '6');
-  await page.evaluate(() => { window.scrollTo(0, 0); const a = document.getElementById('aviso-flutuante'); if (a) a.hidden = true; const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
+  await page.evaluate(() => { window.scrollTo(0, 0); for (const id of ['aviso-flutuante', 'aviso-flutuante-erro']) { const a = document.getElementById(id); if (a) a.hidden = true; } const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
   await page.screenshot({ path: join(FOTOS, `distribuidor-tarefas_${VERSAO}_gabinete.png`), fullPage: true });
   await ctx.close();
 }
@@ -172,11 +185,15 @@ async function baixar(page, seletor) {
   await chks.nth(2).check();
   await chks.nth(4).check();
   await page.fill('#servidor', 'Servidor A');
+  await page.click('#lista-incisos [data-inciso="III"]');
+  assert.equal(await page.locator('#processos-corpo input[type=checkbox]:checked').count(), 0, 'C-01: leitura do XV não vale para o III');
+  await page.click('#lista-incisos [data-inciso="XV"]');
+  assert.equal(await page.locator('#processos-corpo input[type=checkbox]:checked').count(), 3, 'C-01: leitura do XV preservada');
 
   // 3. Modelo em rascunho: só prévia, com tarja
   assert.ok(await page.isDisabled('#bt-gerar'));
   assert.ok((await page.textContent('#previa-ato')).includes('MODELO NÃO VALIDADO PELO JUÍZO'));
-  await page.evaluate(() => { const a = document.getElementById('aviso-flutuante'); if (a) a.hidden = true; const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
+  await page.evaluate(() => { for (const id of ['aviso-flutuante', 'aviso-flutuante-erro']) { const a = document.getElementById(id); if (a) a.hidden = true; } const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
   await page.screenshot({ path: join(FOTOS, `atos-em-lote_${VERSAO}_rascunho.png`), fullPage: true });
 
   // 4. Preencher prazo, salvar e validar
@@ -197,10 +214,13 @@ async function baixar(page, seletor) {
   const txt = await baixar(page, '#bt-baixar-txt');
   assert.ok(txt.texto.includes('inciso XV'));
   assert.equal(await page.locator('#auditoria-corpo tr').count(), 1);
+  assert.equal(await page.locator('#processos-corpo input[type=checkbox]:checked').count(), 0, 'C-01: leitura zerada depois do lote');
+  assert.ok(await page.isDisabled('#bt-gerar'), 'C-01: gerar de novo exige nova leitura');
+  assert.match(await page.textContent('#processos-corpo'), /já gerado em/);
   const aud = await baixar(page, '#bt-csv-auditoria');
   assert.equal(aud.texto.trim().split(/\r?\n/).length, 4);
 
-  await page.evaluate(() => { window.scrollTo(0, 0); const a = document.getElementById('aviso-flutuante'); if (a) a.hidden = true; const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
+  await page.evaluate(() => { window.scrollTo(0, 0); for (const id of ['aviso-flutuante', 'aviso-flutuante-erro']) { const a = document.getElementById(id); if (a) a.hidden = true; } const r = document.getElementById('rodape'); if (r) r.style.position = 'static'; });
   await page.screenshot({ path: join(FOTOS, `atos-em-lote_${VERSAO}_validado.png`), fullPage: true });
 
   // 5. Alterar modelo validado volta para rascunho
@@ -220,4 +240,4 @@ await browser.close();
 
 assert.deepEqual(requisicoesExternas, [], 'nenhuma requisição de rede');
 assert.deepEqual(errosPagina, [], 'sem erros de JavaScript');
-console.log('E2E offline: ok. Capturas em docs/screenshots/.');
+console.log(`E2E offline: ok. Capturas em ${FOTOS}.`);

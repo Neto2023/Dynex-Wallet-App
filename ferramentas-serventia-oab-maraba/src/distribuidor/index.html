@@ -8,6 +8,7 @@
 <style>/*__CSS__*/</style>
 </head>
 <body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <header class="topo">
   <img src="__LOGO__" alt="OAB Pará">
   <div class="topo-titulos">
@@ -27,26 +28,27 @@
 
 <div class="modulos">
   <div class="abas" role="tablist" aria-label="Módulo">
-    <button type="button" role="tab" id="aba-mod-secretaria" data-modulo="secretaria" aria-selected="true">Secretaria: atos ordinatórios</button>
-    <button type="button" role="tab" id="aba-mod-gabinete" data-modulo="gabinete" aria-selected="false">Gabinete: minutas</button>
+    <button type="button" role="tab" id="aba-mod-secretaria" data-modulo="secretaria" aria-selected="true" aria-controls="painel-modulo">Secretaria: atos ordinatórios</button>
+    <button type="button" role="tab" id="aba-mod-gabinete" data-modulo="gabinete" aria-selected="false" aria-controls="painel-modulo">Gabinete: minutas</button>
   </div>
 </div>
 
 <section class="regra" aria-label="Regra de ordenação"><strong>Regra de ordenação:</strong> <span id="texto-regra"></span></section>
 
-<main>
+<main id="conteudo" tabindex="-1">
+<div id="painel-modulo" role="tabpanel" aria-labelledby="aba-mod-secretaria">
   <div class="grade">
     <section class="cartao" id="cartao-entrada" aria-labelledby="tit-entrada">
       <h2 id="tit-entrada"><span class="badge-num">1</span> Entrada de dados</h2>
       <div class="abas secundarias" role="tablist" aria-label="Forma de entrada">
-        <button type="button" role="tab" data-entrada="texto" aria-selected="true">Colar texto</button>
-        <button type="button" role="tab" data-entrada="tabela" aria-selected="false">Tabela ou CSV</button>
-        <button type="button" role="tab" data-entrada="manual" aria-selected="false">Inclusão manual</button>
+        <button type="button" role="tab" id="aba-ent-texto" data-entrada="texto" aria-selected="true" aria-controls="entrada-texto">Colar texto</button>
+        <button type="button" role="tab" id="aba-ent-tabela" data-entrada="tabela" aria-selected="false" aria-controls="entrada-tabela">Tabela ou CSV</button>
+        <button type="button" role="tab" id="aba-ent-manual" data-entrada="manual" aria-selected="false" aria-controls="entrada-manual">Inclusão manual</button>
       </div>
 
-      <div id="entrada-texto" class="painel-entrada">
+      <div id="entrada-texto" class="painel-entrada" role="tabpanel" aria-labelledby="aba-ent-texto">
         <p class="muted pequeno">Cole a relação copiada do painel de tarefas do PJe. A ferramenta reconhece o número CNJ, as datas, a tarefa, as etiquetas e marcas de prioridade (como sugestão).</p>
-        <textarea id="txt-colar" class="cola" spellcheck="false" placeholder="Cole aqui a relação copiada do painel de tarefas do PJe"></textarea>
+        <textarea id="txt-colar" class="cola" spellcheck="false" aria-label="Relação copiada do painel de tarefas do PJe" placeholder="Cole aqui a relação copiada do painel de tarefas do PJe"></textarea>
         <div class="linha" style="margin-top:.4rem">
           <button type="button" class="primario" id="bt-reconhecer">Reconhecer</button>
           <button type="button" class="discreto" id="bt-exemplo">Carregar exemplo fictício</button>
@@ -54,9 +56,9 @@
         </div>
       </div>
 
-      <div id="entrada-tabela" class="painel-entrada" hidden>
+      <div id="entrada-tabela" class="painel-entrada" role="tabpanel" aria-labelledby="aba-ent-tabela" hidden>
         <p class="muted pequeno">Cole uma tabela (copiada de planilha) ou importe um CSV. Depois diga qual coluna é cada informação. O mapeamento pode ser salvo como perfil.</p>
-        <textarea id="txt-tabela" class="cola" spellcheck="false" placeholder="Cole aqui a tabela (colunas separadas por tabulação, ponto e vírgula ou vírgula)"></textarea>
+        <textarea id="txt-tabela" class="cola" spellcheck="false" aria-label="Tabela copiada da planilha ou do CSV" placeholder="Cole aqui a tabela (colunas separadas por tabulação, ponto e vírgula ou vírgula)"></textarea>
         <div class="linha" style="margin-top:.4rem">
           <button type="button" id="bt-ler-tabela" class="primario">Ler tabela</button>
           <button type="button" id="bt-importar-csv">Importar CSV</button>
@@ -74,7 +76,7 @@
         </div>
       </div>
 
-      <div id="entrada-manual" class="painel-entrada" hidden>
+      <div id="entrada-manual" class="painel-entrada" role="tabpanel" aria-labelledby="aba-ent-manual" hidden>
         <div class="linha" style="align-items:flex-end">
           <label class="campo"><span>Número do processo</span><input type="text" id="man-numero" class="num" placeholder="0000000-00.0000.8.14.0028" size="27"></label>
           <label class="campo"><span>Data de entrada</span><input type="date" id="man-data"></label>
@@ -152,12 +154,13 @@
   <section class="cartao" id="cartao-listas" aria-labelledby="tit-listas">
     <h2 id="tit-listas"><span class="badge-num">3</span> Filas ordenadas</h2>
     <div class="abas secundarias" role="tablist" aria-label="Listas" id="abas-listas">
-      <button type="button" role="tab" data-lista="urgencia" aria-selected="true">Urgência reconhecida pelo juiz <span class="contagem" data-cont="urgencia">0</span></button>
-      <button type="button" role="tab" data-lista="preferencia" aria-selected="false">Preferências legais <span class="contagem" data-cont="preferencia">0</span></button>
-      <button type="button" role="tab" data-lista="geral" aria-selected="false">Lista geral <span class="contagem" data-cont="geral">0</span></button>
-      <button type="button" role="tab" data-lista="todas" aria-selected="false">Todas em sequência</button>
-      <button type="button" role="tab" data-lista="servidor" aria-selected="false">Fila por servidor</button>
+      <button type="button" role="tab" id="aba-lista-urgencia" aria-controls="painel-lista" data-lista="urgencia" aria-selected="true">Urgência reconhecida pelo juiz <span class="contagem" data-cont="urgencia">0</span></button>
+      <button type="button" role="tab" id="aba-lista-preferencia" aria-controls="painel-lista" data-lista="preferencia" aria-selected="false">Preferências legais <span class="contagem" data-cont="preferencia">0</span></button>
+      <button type="button" role="tab" id="aba-lista-geral" aria-controls="painel-lista" data-lista="geral" aria-selected="false">Lista geral <span class="contagem" data-cont="geral">0</span></button>
+      <button type="button" role="tab" id="aba-lista-todas" aria-controls="painel-lista" data-lista="todas" aria-selected="false">Todas em sequência</button>
+      <button type="button" role="tab" id="aba-lista-servidor" aria-controls="painel-lista" data-lista="servidor" aria-selected="false">Fila por servidor</button>
     </div>
+    <div id="painel-lista" role="tabpanel" aria-labelledby="aba-lista-urgencia">
     <div class="linha" style="margin:.5rem 0" id="barra-servidor" hidden>
       <label>Servidor: <select id="sel-servidor-fila"></select></label>
     </div>
@@ -167,6 +170,7 @@
         <tbody id="lista-corpo"></tbody>
       </table>
     </div>
+    </div>
     <div class="linha" style="margin-top:.5rem">
       <button type="button" id="bt-imprimir-lista">Imprimir esta lista</button>
       <button type="button" id="bt-csv-lista">Exportar CSV desta lista</button>
@@ -175,8 +179,9 @@
       <button type="button" class="perigo" id="bt-limpar-modulo">Esvaziar o módulo</button>
     </div>
     <p class="nota-lista" id="nota-lista"></p>
-    <p class="nota-lista">Clique em um processo para editar: urgência (só com referência do pronunciamento do juiz), preferências, ordem definida pelo juiz, sigilo e responsável. Números de processos sigilosos saem mascarados no CSV e na impressão.</p>
+    <p class="nota-lista">Clique em "Editar" (ou na linha) para mudar: urgência (só com referência do pronunciamento do juiz), preferências, ordem definida pelo juiz, sigilo e responsável. Números de processos sigilosos saem mascarados no CSV e na impressão.</p>
   </section>
+</div>
 </main>
 
 <footer class="rodape-fixo" id="rodape"></footer>
@@ -251,6 +256,7 @@
       <li>A data considerada é a de entrada na tarefa do PJe, usada como aproximação do marco do art. 228 do CPC.</li>
     </ul>
     <p class="muted" style="margin-top:.8rem">Protótipo desenvolvido pela OAB/PA Subseção Marabá. Versão __VERSAO__, novembro de 2026.</p>
+    <p class="muted">Autoria: Dr. Abrahão, Presidente da Comissão de Direito Digital da OAB/PA Subseção Marabá. Desenvolvido com assistência de inteligência artificial, sob direção e revisão do autor.</p>
   </div>
 </dialog>
 

@@ -24,8 +24,10 @@ export function montarPainel(processos, { modulo, referencia, contagem, servidor
     if (e.concorrente) { e.alertas.push(ALERTA_CONCORRENCIA); contadores.concorrentes++; }
     if (prazo.vencido) { e.alertas.push(prazo.alerta); contadores.acimaPrazo++; }
     if (!p.dataEntrada) e.alertas.push('Sem data de entrada');
-    if (!p.preferenciaConfirmada && (p.preferencias || []).length) {
-      e.alertas.push('Preferência sugerida: confirmar (' + p.preferencias.map(rotuloPreferencia).join(', ') + ')');
+    if (!p.preferenciaConfirmada && !p.sugestoesRevisadas && (p.sugestoesPreferencia || []).length) {
+      e.alertas.push('Preferência sugerida: confirmar (' + p.sugestoesPreferencia.map(rotuloPreferencia).join(', ') + ')');
+    } else if (!p.preferenciaConfirmada && (p.preferencias || []).length) {
+      e.alertas.push('Preferência marcada sem confirmação');
     }
     if (p.sugestaoSigiloso && !p.sigiloso) e.alertas.push('Possível sigilo: conferir');
     if (p.responsavelFixado && p.responsavel && !nomes.has(p.responsavel)) e.alertas.push('Responsável fixado fora do cadastro');
@@ -42,10 +44,10 @@ export function rotuloListaEntrada(e) {
 
 // Linhas para exportação pública: número de processo sigiloso sempre mascarado.
 export function linhasExportacao(entradas, { modoContagem } = {}) {
-  const cab = ['Ordem na lista', 'Sequência', 'Processo', 'Lista', 'Providência', 'Tarefa', 'Na fila desde',
+  const cab = ['Ordem', 'Sequência', 'Processo', 'Lista', 'Providência', 'Tarefa', 'Na fila desde',
     modoContagem === 'corridos' ? 'Dias (corridos)' : 'Dias (úteis)', 'Responsável', 'Alerta'];
   const linhas = entradas.map((e) => [
-    e.ordem, e.posicao, numeroPublico(e.processo), rotuloListaEntrada(e), e.processo.providencia, e.processo.tarefa,
+    e.ordemExibida ?? e.ordem, e.posicao, numeroPublico(e.processo), rotuloListaEntrada(e), e.processo.providencia, e.processo.tarefa,
     formatarDataBR(e.processo.dataEntrada), e.dias ?? '', e.processo.responsavel || '', (e.alertas || []).join(' / '),
   ]);
   return { cab, linhas };

@@ -9,19 +9,21 @@
 .lista-incisos { max-height: 22rem; overflow-y: auto; border: 1px solid var(--borda); border-radius: 3px; }
 .lista-incisos button { display: block; width: 100%; text-align: left; border: none; border-bottom: 1px solid #E3E8EE; border-radius: 0; color: var(--texto); padding: 0.35rem 0.55rem; background: #FFFFFF; }
 .lista-incisos button:nth-child(even) { background: var(--zebra); }
-.lista-incisos button[aria-pressed=true] { background: var(--fundo-1); box-shadow: inset 4px 0 0 var(--azul); font-weight: bold; }
-.lista-incisos button[aria-disabled=true] { color: #7A8796; }
+.lista-incisos button[aria-checked=true] { background: var(--fundo-1); box-shadow: inset 4px 0 0 var(--azul); font-weight: bold; }
+.lista-incisos button[aria-disabled=true] { color: #5E6B7A; }
 .lista-incisos .rom { display: inline-block; min-width: 3.2rem; font-weight: bold; color: var(--navy); }
-.lista-incisos button[aria-disabled=true] .rom { color: #7A8796; }
+.lista-incisos button[aria-disabled=true] .rom { color: #5E6B7A; }
 .etiqueta-sugerida { font-family: var(--fonte-num); background: var(--navy); color: #FFFFFF; padding: 0.2rem 0.5rem; border-radius: 3px; }
 .ato-item { border: 1px solid var(--borda); border-radius: 3px; padding: 0.5rem 0.6rem; margin: 0.4rem 0; }
 .ato-item .texto-ato { min-height: 0; font-size: 0.92rem; }
 tr.nao-lido td { color: var(--texto-2); }
 #processos-corpo .selo { white-space: normal; }
 #processos-corpo td.num { font-size: 0.78rem; }
+@media (max-width: 640px) { #processos-corpo td.num { white-space: normal; word-break: break-all; } .etiqueta-sugerida { display: inline-block; margin: 0.2rem 0; } .lista-incisos .rom { min-width: 2.6rem; } }
 </style>
 </head>
 <body>
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
 <header class="topo">
   <img src="__LOGO__" alt="OAB Pará">
   <div class="topo-titulos">
@@ -40,12 +42,12 @@ tr.nao-lido td { color: var(--texto-2); }
 
 <section class="regra" aria-label="Fluxo"><strong>Fluxo:</strong> 1º escolher a hipótese do provimento · 2º colar os processos lidos um a um e marcados com a etiqueta própria da vara · 3º gerar o texto com modelo validado pelo juízo.</section>
 
-<main>
+<main id="conteudo" tabindex="-1">
   <div class="grade-3">
     <section class="cartao" aria-labelledby="tit-hipotese">
       <h2 id="tit-hipotese"><span class="badge-num">1</span> Hipótese</h2>
       <p class="muted pequeno">Art. 1º, § 2º, do Provimento nº 006/2006-CJRMB (processos cíveis).</p>
-      <div class="lista-incisos" id="lista-incisos" role="group" aria-label="Incisos"></div>
+      <div class="lista-incisos" id="lista-incisos" role="radiogroup" aria-label="Incisos do art. 1º, § 2º"></div>
       <div id="detalhe-inciso" style="margin-top:.6rem"></div>
       <div class="pendente pequeno" id="aviso-ocr"></div>
       <div class="alerta-caixa" id="caixa-vedacoes">
@@ -60,7 +62,7 @@ tr.nao-lido td { color: var(--texto-2); }
       <div class="info pequeno" id="lembrete-berna"></div>
       <p class="pequeno">Etiqueta própria sugerida para o PJe: <span class="etiqueta-sugerida" id="etiqueta-sugerida">LOTE · REVISADO</span>
         <button type="button" class="discreto" id="bt-copiar-etiqueta">Copiar</button></p>
-      <textarea id="txt-processos" class="cola" spellcheck="false" placeholder="Cole a relação dos processos já marcados no PJe com a etiqueta própria da vara"></textarea>
+      <textarea id="txt-processos" class="cola" spellcheck="false" aria-label="Relação dos processos lidos e etiquetados" placeholder="Cole a relação dos processos já marcados no PJe com a etiqueta própria da vara"></textarea>
       <div class="linha" style="margin-top:.4rem">
         <button type="button" class="primario" id="bt-reconhecer-processos">Reconhecer números</button>
         <button type="button" class="discreto" id="bt-exemplo-processos">Carregar exemplo fictício</button>
@@ -88,6 +90,7 @@ tr.nao-lido td { color: var(--texto-2); }
         <button type="button" class="discreto" id="bt-importar-modelos">Importar modelos (.json)</button>
         <button type="button" class="discreto" id="bt-exportar-modelos">Exportar modelos (.json)</button>
       </div>
+      <p class="pequeno muted">Atenção: "validado pelo juízo" num arquivo importado só tem valor se o arquivo veio do próprio juízo. Na dúvida, valide de novo aqui.</p>
       <h3 style="margin-top:.7rem">Prévia do ato</h3>
       <div id="previa-ato" class="texto-ato"></div>
       <div id="impedimentos" style="margin-top:.4rem"></div>
@@ -146,6 +149,7 @@ tr.nao-lido td { color: var(--texto-2); }
       <li>O catálogo foi transcrito por OCR e está pendente de conferência contra o PDF oficial.</li>
     </ul>
     <p class="muted" style="margin-top:.8rem">Protótipo desenvolvido pela OAB/PA Subseção Marabá. Versão __VERSAO__, novembro de 2026.</p>
+    <p class="muted">Autoria: Dr. Abrahão, Presidente da Comissão de Direito Digital da OAB/PA Subseção Marabá. Desenvolvido com assistência de inteligência artificial, sob direção e revisão do autor.</p>
   </div>
 </dialog>
 

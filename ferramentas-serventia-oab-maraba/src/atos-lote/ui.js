@@ -4,6 +4,7 @@ import { formatarDataBR, agoraISO } from '../comum/datas.js';
 import { extrairNumerosCNJ } from '../comum/parser.js';
 import { CATALOGO_PROV_006_2006, VEDACOES_PROV_006_2006, CONFERENCIA_CATALOGO, buscarInciso } from './catalogo-prov-006-2006.js';
 import { STATUS_MODELO, criarModelo, editarModelo, validarModelo, modeloValidado, problemasDoModelo, incisoHabilitado, exportarModelos, importarModelos, modeloExemploXV } from './modelos.js';
+import { marcarLido, lidoNoInciso, processosDoInciso, zerarLidos, geradoNoInciso, restaurarProcessos, migrarProcessosV1 } from './selecao.js';
 import { gerarPrevia, gerarLote, impedimentosDoLote, processosLidos, sugerirEtiqueta, textoArquivoLote, csvRelacaoLote, csvAuditoria, LEMBRETE_BERNA, AVISO_NAO_LIDO, TARJA_RASCUNHO } from './gerador.js';
 
 // Estado em memória. Dados de processo nunca vão para o localStorage: só para o arquivo de sessão que o usuário baixa.
@@ -17,6 +18,11 @@ const estadoAtos = {
   ultimoLote: null,
   edicao: null,
 };
+
+function avisarCopia(ok, mensagem) {
+  if (ok) avisar(mensagem, 'ok');
+  else avisar('Não foi possível copiar. Selecione o texto e use Ctrl+C; não cole no PJe sem conferir.', 'erro');
+}
 
 function modeloAtual() {
   return estadoAtos.modelos.find((m) => m.id === estadoAtos.modeloId && m.inciso === estadoAtos.inciso) || null;
@@ -48,8 +54,9 @@ function renderizarIncisos() {
   const alvo = limpar($('#lista-incisos'));
   for (const c of CATALOGO_PROV_006_2006) {
     const habil = incisoHabilitado(c, estadoAtos.modelos);
+    const sel = c.inciso === estadoAtos.inciso;
     alvo.append(el('button', {
-      type: 'button', 'aria-pressed': String(c.inciso === estadoAtos.inciso), 'aria-disabled': habil ? null : 'true',
+      type: 'button', role: 'radio', 'aria-checked': String(sel), tabindex: sel ? 0 : -1, 'aria-disabled': habil ? null : 'true',
       dataset: { inciso: c.inciso }, title: habil ? c.rotulo : 'Revisar aplicabilidade com o juízo',
     }, el('span', { class: 'rom' }, c.inciso), c.rotulo, habil ? null : el('div', {}, el('span', { class: 'selo revisar' }, 'Revisar aplicabilidade com o juízo'))));
   }
@@ -81,13 +88,13 @@ function reconhecerProcessos() {
   let novos = 0, repetidos = 0;
   for (const n of numeros) {
     if (existentes.has(n)) { repetidos++; continue; }
-    const p = { numero: n, lido: false };
+    const p = { numero: n, lidos: {}, gerados: {} };
     estadoAtos.processos.push(p);
     existentes.set(n, p);
     novos++;
   }
   const av = limpar($('#avisos-processos'));
-  const msgs = [`${novos} processo(s) incluído(s), todos como "não lido".`];
+  const msgs = [`${novos} processo(s) incluído(s), todos como "não lido" para o inciso ${estadoAtos.inciso}.`];
   if (repetidos) msgs.push(`${repetidos} repetido(s) ignorado(s).`);
   if (linhasSemNumero) msgs.push(`${linhasSemNumero} linha(s) sem número de processo ignorada(s).`);
   av.append(el('div', { class: 'info pequeno' }, msgs.join(' ')));
@@ -100,16 +107,21 @@ function renderizarProcessos() {
   if (!estadoAtos.processos.length) {
     corpo.append(el('tr', {}, el('td', { colspan: 3, class: 'vazio' }, 'Nenhum processo. Cole a relação dos processos etiquetados.')));
   }
+  const inc = estadoAtos.inciso;
   estadoAtos.processos.forEach((p, i) => {
-    const chk = el('input', { type: 'checkbox', checked: p.lido === true, 'aria-label': `Lido individualmente: ${p.numero}` });
-    chk.addEventListener('change', () => { p.lido = chk.checked; renderizarProcessos(); renderizarPreviaEGerar(); });
-    corpo.append(el('tr', { class: p.lido ? '' : 'nao-lido' },
+    const lido = lidoNoInciso(p, inc);
+    const gerado = geradoNoInciso(p, inc);
+    const chk = el('input', { type: 'checkbox', checked: lido, 'aria-label': `Lido individualmente para o inciso ${inc}: ${p.numero}` });
+    chk.addEventListener('change', () => { marcarLido(p, inc, chk.checked); renderizarProcessos(); renderizarPreviaEGerar(); });
+    corpo.append(el('tr', { class: lido ? '' : 'nao-lido' },
       el('td', { class: 'num' }, p.numero),
-      el('td', {}, el('label', {}, chk, 'Lido'), el('div', {}, p.lido ? el('span', { class: 'selo ok' }, 'Entra no lote') : el('span', { class: 'selo alerta' }, AVISO_NAO_LIDO))),
-      el('td', {}, el('button', { type: 'button', class: 'discreto', onclick: () => { estadoAtos.processos.splice(i, 1); renderizarProcessos(); renderizarPreviaEGerar(); } }, 'Tirar'))));
+      el('td', {}, el('label', {}, chk, `Lido (inciso ${inc})`),
+        el('div', {}, lido ? el('span', { class: 'selo ok' }, 'Entra no lote') : el('span', { class: 'selo alerta' }, AVISO_NAO_LIDO)),
+        gerado ? el('div', { class: 'pequeno muted' }, `Ato do inciso ${inc} já gerado em ${formatarDataBR(gerado)}`) : null),
+      el('td', {}, el('button', { type: 'button', class: 'discreto', 'aria-label': `Tirar ${p.numero} da relação`, onclick: () => { estadoAtos.processos.splice(i, 1); renderizarProcessos(); renderizarPreviaEGerar(); } }, 'Tirar'))));
   });
-  const lidos = processosLidos(estadoAtos.processos).length;
-  $('#contagem-lidos').textContent = `${lidos} lido(s) de ${estadoAtos.processos.length}. Só os lidos entram no lote.`;
+  const lidos = processosDoInciso(estadoAtos.processos, inc).filter((p) => p.lido).length;
+  $('#contagem-lidos').textContent = `${lidos} lido(s) para o inciso ${inc}, de ${estadoAtos.processos.length}. Só os lidos para este inciso entram no lote; a leitura de outro inciso não vale aqui.`;
 }
 
 // ---------- Coluna 3: modelo e texto ----------
@@ -220,7 +232,8 @@ function excluirModelo() {
 function renderizarPreviaEGerar() {
   const m = modeloAtual();
   const caixa = limpar($('#previa-ato'));
-  const primeiro = processosLidos(estadoAtos.processos)[0];
+  const visao = processosDoInciso(estadoAtos.processos, estadoAtos.inciso);
+  const primeiro = processosLidos(visao)[0];
   if (!m) {
     caixa.className = 'texto-ato';
     caixa.append(el('span', { class: 'muted' }, 'Sem modelo para prévia.'));
@@ -230,8 +243,8 @@ function renderizarPreviaEGerar() {
     if (pv.tarja) caixa.append(el('span', { class: 'tarja' }, TARJA_RASCUNHO));
     caixa.append(pv.texto);
   }
-  const imp = impedimentosDoLote({ modelo: m, processos: estadoAtos.processos, servidor: estadoAtos.servidor, modelos: estadoAtos.modelos });
-  const n = processosLidos(estadoAtos.processos).length;
+  const imp = impedimentosDoLote({ modelo: m, processos: visao, servidor: estadoAtos.servidor, modelos: estadoAtos.modelos });
+  const n = processosLidos(visao).length;
   const bt = $('#bt-gerar');
   bt.disabled = imp.length > 0;
   bt.textContent = `Gerar ${n} ato${n === 1 ? '' : 's'} do lote`;
@@ -240,8 +253,12 @@ function renderizarPreviaEGerar() {
 }
 
 function gerar() {
-  const r = gerarLote({ modelo: modeloAtual(), processos: estadoAtos.processos, servidor: estadoAtos.servidor, dataHora: agoraISO(), modelos: estadoAtos.modelos });
+  const r = gerarLote({ modelo: modeloAtual(), processos: processosDoInciso(estadoAtos.processos, estadoAtos.inciso), servidor: estadoAtos.servidor, dataHora: agoraISO(), modelos: estadoAtos.modelos });
   if (!r.ok) { avisar(r.impedimentos.join(' '), 'erro'); return; }
+  // A leitura foi usada neste lote: zera para que um novo lote exija nova leitura (achado C-01).
+  zerarLidos(estadoAtos.processos, r.registro.inciso, r.registro.processos, r.registro.dataHora);
+  renderizarProcessos();
+  renderizarPreviaEGerar();
   estadoAtos.ultimoLote = r;
   estadoAtos.auditoria.push(r.registro);
   renderizarSaida();
@@ -262,7 +279,7 @@ function renderizarSaida() {
     unico.append(
       el('p', { class: 'pequeno' }, 'O texto é idêntico para todos os processos do lote: use-o na operação em lote do PJe, pela etiqueta ', el('strong', {}, lote.etiqueta), '.'),
       el('div', { class: 'texto-ato', id: 'texto-unico' }, lote.textoUnico),
-      el('div', { class: 'linha', style: 'margin-top:.4rem' }, el('button', { type: 'button', class: 'primario', onclick: async () => avisar(await copiarTexto(lote.textoUnico) ? 'Texto copiado.' : 'Não foi possível copiar.', 'ok') }, 'Copiar o texto único do lote')));
+      el('div', { class: 'linha', style: 'margin-top:.4rem' }, el('button', { type: 'button', class: 'primario', onclick: async () => avisarCopia(await copiarTexto(lote.textoUnico), 'Texto copiado.') }, 'Copiar o texto único do lote')));
   } else {
     unico.append(el('div', { class: 'info' }, 'O modelo usa {{numero}}: o texto muda de processo para processo. Copie por processo (abaixo) ou baixe o .txt.'));
   }
@@ -270,7 +287,7 @@ function renderizarSaida() {
   for (const a of lote.atos) {
     lista.append(el('div', { class: 'ato-item' },
       el('div', { class: 'linha' }, el('strong', { class: 'num' }, a.numero),
-        el('button', { type: 'button', class: 'discreto', onclick: async () => avisar(await copiarTexto(a.texto) ? `Texto de ${a.numero} copiado.` : 'Não foi possível copiar.', 'ok') }, 'Copiar')),
+        el('button', { type: 'button', class: 'discreto', 'aria-label': `Copiar o texto de ${a.numero}`, onclick: async () => avisarCopia(await copiarTexto(a.texto), `Texto de ${a.numero} copiado.`) }, 'Copiar')),
       el('div', { class: 'texto-ato' }, a.texto)));
   }
 }
@@ -294,7 +311,7 @@ function renderizarAuditoria() {
 function sessaoAtosAtual() {
   return {
     tipo: 'sessao-atos-lote',
-    versaoFormato: 1,
+    versaoFormato: 2,
     ferramenta: 'Gerador de Atos Ordinatórios em Lote __VERSAO__',
     salvoEm: agoraISO(),
     aviso: 'Arquivo de trabalho da vara. Contém números de processo: não compartilhe fora da unidade.',
@@ -310,16 +327,24 @@ function abrirSessaoAtos(dados) {
   if (!dados || dados.tipo !== 'sessao-atos-lote') throw new Error('Arquivo não é uma sessão do Gerador de Atos em Lote.');
   const imp = importarModelos(JSON.stringify({ modelos: dados.modelos || [] }));
   estadoAtos.modelos = imp.modelos;
-  estadoAtos.processos = (Array.isArray(dados.processos) ? dados.processos : [])
-    .filter((p) => p && extrairNumerosCNJ(p.numero).length).map((p) => ({ numero: extrairNumerosCNJ(p.numero)[0], lido: p.lido === true }));
-  estadoAtos.auditoria = Array.isArray(dados.auditoria) ? dados.auditoria.filter((r) => r && Array.isArray(r.processos)) : [];
+  const avisosSessao = [...imp.avisos];
+  const brutos = (Array.isArray(dados.processos) ? dados.processos : [])
+    .filter((p) => p && extrairNumerosCNJ(p.numero).length).map((p) => ({ ...p, numero: extrairNumerosCNJ(p.numero)[0] }));
+  if ((dados.versaoFormato || 1) < 2) {
+    const m = migrarProcessosV1(brutos);
+    estadoAtos.processos = m.processos;
+    if (m.descartados) avisosSessao.push(`Sessão da v1: ${m.descartados} marcação(ões) de leitura descartada(s), porque a v1 não registrava o inciso. Marque de novo os processos lidos.`);
+  } else {
+    estadoAtos.processos = restaurarProcessos(brutos);
+  }
+  estadoAtos.auditoria = Array.isArray(dados.auditoria) ? dados.auditoria.filter((r) => r && Array.isArray(r.processos) && typeof r.dataHora === 'string' && buscarInciso(r.inciso)) : [];
   estadoAtos.servidor = String(dados.servidor || '');
   estadoAtos.inciso = buscarInciso(dados.inciso) ? dados.inciso : 'XV';
   estadoAtos.modeloId = '';
   estadoAtos.edicao = null;
   estadoAtos.ultimoLote = null;
   $('#servidor').value = estadoAtos.servidor;
-  return imp.avisos;
+  return avisosSessao;
 }
 
 async function abrirArquivoJSON(acao) {
@@ -345,6 +370,19 @@ function ligarEventosAtos() {
   const ol = limpar($('#lista-vedacoes'));
   VEDACOES_PROV_006_2006.forEach((v) => ol.append(el('li', {}, v)));
 
+  $('#lista-incisos').addEventListener('keydown', (ev) => {
+    const bs = $$('#lista-incisos button[data-inciso]');
+    const i = bs.findIndex((b) => b.dataset.inciso === estadoAtos.inciso);
+    let j = null;
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowRight') j = Math.min(bs.length - 1, i + 1);
+    else if (ev.key === 'ArrowUp' || ev.key === 'ArrowLeft') j = Math.max(0, i - 1);
+    else if (ev.key === 'Home') j = 0;
+    else if (ev.key === 'End') j = bs.length - 1;
+    if (j === null || j === i) return;
+    ev.preventDefault();
+    bs[j].click();
+    $(`#lista-incisos button[data-inciso="${bs[j].dataset.inciso}"]`)?.focus();
+  });
   $('#lista-incisos').addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-inciso]');
     if (!b) return;
@@ -374,7 +412,7 @@ function ligarEventosAtos() {
     renderizarProcessos();
     renderizarPreviaEGerar();
   });
-  $('#bt-copiar-etiqueta').addEventListener('click', async () => avisar(await copiarTexto($('#etiqueta-sugerida').textContent) ? 'Nome da etiqueta copiado.' : 'Não foi possível copiar.', 'ok'));
+  $('#bt-copiar-etiqueta').addEventListener('click', async () => avisarCopia(await copiarTexto($('#etiqueta-sugerida').textContent), 'Nome da etiqueta copiado.'));
   $('#bt-gerar').addEventListener('click', gerar);
   $('#bt-baixar-txt').addEventListener('click', () => {
     const l = estadoAtos.ultimoLote;
@@ -396,7 +434,7 @@ function ligarEventosAtos() {
   $('#bt-sobre').addEventListener('click', () => abrirDialogo('dlg-sobre'));
   $('#bt-salvar-sessao').addEventListener('click', () => {
     baixarArquivo(`sessao-atos-lote_${carimboArquivo()}.json`, JSON.stringify(sessaoAtosAtual(), null, 2), 'application/json');
-    avisar('Sessão salva no arquivo baixado. Guarde-o na pasta da vara.', 'ok');
+    avisar('Sessão salva. Guarde o arquivo na pasta da vara e apague a cópia de Downloads: ele contém números de processo.', 'ok');
   });
   $('#bt-abrir-sessao').addEventListener('click', () => {
     if ((estadoAtos.processos.length || estadoAtos.auditoria.length) && !confirm('Abrir outra sessão substitui os dados atuais. Continuar?')) return;
