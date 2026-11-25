@@ -1,0 +1,12 @@
+{
+  "name": "ferramentas-serventia-oab-maraba",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Protótipos da OAB/PA Subseção Marabá para as serventias judiciais da Comarca de Marabá",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test \"test/*.test.mjs\"",
+    "e2e": "node test/e2e/offline.e2e.mjs"
+  }
+}

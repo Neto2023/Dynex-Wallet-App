@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Atos Ordinatórios em Lote</title>
+<style>/*__CSS__*/
+.lista-incisos { max-height: 22rem; overflow-y: auto; border: 1px solid var(--borda); border-radius: 3px; }
+.lista-incisos button { display: block; width: 100%; text-align: left; border: none; border-bottom: 1px solid #E3E8EE; border-radius: 0; color: var(--texto); padding: 0.35rem 0.55rem; background: #FFFFFF; }
+.lista-incisos button:nth-child(even) { background: var(--zebra); }
+.lista-incisos button[aria-pressed=true] { background: var(--fundo-1); box-shadow: inset 4px 0 0 var(--azul); font-weight: bold; }
+.lista-incisos button[aria-disabled=true] { color: #7A8796; }
+.lista-incisos .rom { display: inline-block; min-width: 3.2rem; font-weight: bold; color: var(--navy); }
+.lista-incisos button[aria-disabled=true] .rom { color: #7A8796; }
+.etiqueta-sugerida { font-family: var(--fonte-num); background: var(--navy); color: #FFFFFF; padding: 0.2rem 0.5rem; border-radius: 3px; }
+.ato-item { border: 1px solid var(--borda); border-radius: 3px; padding: 0.5rem 0.6rem; margin: 0.4rem 0; }
+.ato-item .texto-ato { min-height: 0; font-size: 0.92rem; }
+tr.nao-lido td { color: var(--texto-2); }
+#processos-corpo .selo { white-space: normal; }
+#processos-corpo td.num { font-size: 0.78rem; }
+</style>
+</head>
+<body>
+<header class="topo">
+  <img src="__LOGO__" alt="OAB Pará">
+  <div class="topo-titulos">
+    <div class="topo-inst">OAB/PA · Subseção <span class="vermelho">Marabá</span></div>
+    <h1>Gerador de Atos Ordinatórios em Lote</h1>
+    <div class="topo-sub">Protótipo __VERSAO__ · Provimento nº 006/2006-CJRMB · funciona no computador da vara, sem rede e sem envio de dados</div>
+  </div>
+  <nav class="topo-acoes" aria-label="Ações gerais">
+    <button type="button" id="bt-abrir-sessao">Abrir sessão</button>
+    <button type="button" id="bt-salvar-sessao">Salvar sessão</button>
+    <button type="button" id="bt-sobre">Sobre</button>
+    <button type="button" id="bt-fonte-menos" class="discreto" title="Diminuir letra" aria-label="Diminuir letra">A-</button>
+    <button type="button" id="bt-fonte-mais" class="discreto" title="Aumentar letra" aria-label="Aumentar letra">A+</button>
+  </nav>
+</header>
+
+<section class="regra" aria-label="Fluxo"><strong>Fluxo:</strong> 1º escolher a hipótese do provimento · 2º colar os processos lidos um a um e marcados com a etiqueta própria da vara · 3º gerar o texto com modelo validado pelo juízo.</section>
+
+<main>
+  <div class="grade-3">
+    <section class="cartao" aria-labelledby="tit-hipotese">
+      <h2 id="tit-hipotese"><span class="badge-num">1</span> Hipótese</h2>
+      <p class="muted pequeno">Art. 1º, § 2º, do Provimento nº 006/2006-CJRMB (processos cíveis).</p>
+      <div class="lista-incisos" id="lista-incisos" role="group" aria-label="Incisos"></div>
+      <div id="detalhe-inciso" style="margin-top:.6rem"></div>
+      <div class="pendente pequeno" id="aviso-ocr"></div>
+      <div class="alerta-caixa" id="caixa-vedacoes">
+        <h3>Vedações: a secretaria não subscreve (art. 1º, § 3º)</h3>
+        <ol id="lista-vedacoes"></ol>
+        <p class="pequeno">A ferramenta não oferece modelo para nenhum desses documentos.</p>
+      </div>
+    </section>
+
+    <section class="cartao" aria-labelledby="tit-processos">
+      <h2 id="tit-processos"><span class="badge-num">2</span> Processos</h2>
+      <div class="info pequeno" id="lembrete-berna"></div>
+      <p class="pequeno">Etiqueta própria sugerida para o PJe: <span class="etiqueta-sugerida" id="etiqueta-sugerida">LOTE · REVISADO</span>
+        <button type="button" class="discreto" id="bt-copiar-etiqueta">Copiar</button></p>
+      <textarea id="txt-processos" class="cola" spellcheck="false" placeholder="Cole a relação dos processos já marcados no PJe com a etiqueta própria da vara"></textarea>
+      <div class="linha" style="margin-top:.4rem">
+        <button type="button" class="primario" id="bt-reconhecer-processos">Reconhecer números</button>
+        <button type="button" class="discreto" id="bt-exemplo-processos">Carregar exemplo fictício</button>
+        <button type="button" class="discreto" id="bt-limpar-processos">Esvaziar relação</button>
+      </div>
+      <div id="avisos-processos"></div>
+      <div class="tabela-rolagem tabela-alta" style="margin-top:.5rem">
+        <table>
+          <thead><tr><th>Processo</th><th>Lido individualmente</th><th></th></tr></thead>
+          <tbody id="processos-corpo"></tbody>
+        </table>
+      </div>
+      <p class="pequeno" id="contagem-lidos" style="margin-top:.4rem"></p>
+    </section>
+
+    <section class="cartao" aria-labelledby="tit-texto">
+      <h2 id="tit-texto"><span class="badge-num">3</span> Texto</h2>
+      <div class="linha" style="align-items:flex-end">
+        <label class="campo"><span>Servidor responsável pelo lote</span><input type="text" id="servidor" size="18" placeholder="Servidor A"></label>
+        <label class="campo" style="flex:1 1 200px"><span>Modelo</span><select id="sel-modelo"></select></label>
+        <button type="button" id="bt-novo-modelo">Novo modelo</button>
+      </div>
+      <div id="editor-modelo"></div>
+      <div class="linha" style="margin-top:.3rem">
+        <button type="button" class="discreto" id="bt-importar-modelos">Importar modelos (.json)</button>
+        <button type="button" class="discreto" id="bt-exportar-modelos">Exportar modelos (.json)</button>
+      </div>
+      <h3 style="margin-top:.7rem">Prévia do ato</h3>
+      <div id="previa-ato" class="texto-ato"></div>
+      <div id="impedimentos" style="margin-top:.4rem"></div>
+      <div class="linha fim" style="margin-top:.5rem">
+        <button type="button" class="primario" id="bt-gerar" disabled>Gerar atos do lote</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="cartao" id="cartao-saida" aria-labelledby="tit-saida" hidden>
+    <h2 id="tit-saida"><span class="badge-num">4</span> Saída do lote</h2>
+    <div id="saida-resumo" class="info"></div>
+    <div id="saida-unico"></div>
+    <div class="linha" style="margin:.5rem 0">
+      <button type="button" id="bt-baixar-txt">Baixar .txt do lote</button>
+      <button type="button" id="bt-baixar-relacao">Baixar relação .csv</button>
+    </div>
+    <details>
+      <summary>Texto por processo</summary>
+      <div id="saida-por-processo"></div>
+    </details>
+  </section>
+
+  <section class="cartao" aria-labelledby="tit-auditoria">
+    <h2 id="tit-auditoria"><span class="badge-num">5</span> Registro de auditoria local</h2>
+    <p class="muted pequeno">Cada geração fica registrada nesta sessão, para a revisão pelo juiz prevista no art. 2º do provimento. O registro vai junto no "Salvar sessão".</p>
+    <div class="tabela-rolagem">
+      <table>
+        <thead><tr><th>Data e hora</th><th>Servidor</th><th>Inciso</th><th>Modelo</th><th>Versão</th><th>Validado por</th><th>Processos</th></tr></thead>
+        <tbody id="auditoria-corpo"></tbody>
+      </table>
+    </div>
+    <div class="linha" style="margin-top:.5rem"><button type="button" id="bt-csv-auditoria">Exportar auditoria (.csv)</button></div>
+  </section>
+</main>
+
+<footer class="rodape-fixo" id="rodape">Entrada: relação de processos lidos e etiquetados pelo próprio servidor no PJe. Nenhum dado sai do computador da vara.</footer>
+
+<dialog id="dlg-sobre" aria-labelledby="dlg-sobre-tit">
+  <div class="dlg-topo"><h2 id="dlg-sobre-tit">Sobre o Gerador de Atos Ordinatórios em Lote</h2><button type="button" data-fechar="dlg-sobre">Fechar</button></div>
+  <div class="dlg-corpo">
+    <h3>O que faz e o que não faz</h3>
+    <p>Gera em lote o texto dos atos ordinatórios que o Provimento nº 006/2006-CJRMB dispensa de despacho, com a menção expressa ao provimento, artigo, parágrafo e inciso.</p>
+    <p>Só trabalha com processos que o servidor leu um a um e marcou com etiqueta própria da vara, e só gera lote com modelo validado pelo juízo.</p>
+    <p>Não acessa o PJe, não junta nem assina documentos, não decide se um inciso se aplica e não oferece modelo para os documentos vedados pelo art. 1º, § 3º.</p>
+    <h3 style="margin-top:.8rem">Base normativa</h3>
+    <p>O art. 203, § 4º, do CPC dispõe que os atos meramente ordinatórios, como a juntada e a vista obrigatória, independem de despacho, devendo ser praticados de ofício pelo servidor e revistos pelo juiz quando necessário. O Provimento nº 006/2006-CJRMB (DJ nº 3750, de 20/10/2006) lista, no art. 1º, os atos que independem de despacho e são realizados pelo Diretor de Secretaria ou seu substituto: 28 hipóteses nos processos cíveis (§ 2º) e os documentos que a secretaria não pode subscrever (§ 3º). O art. 2º exige que todo ato mencione expressamente o provimento, artigo, parágrafo e inciso, e permite a revisão pelo juiz de ofício ou a requerimento. O Provimento nº 006/2009-CJCI, art. 1º, autoriza a aplicação do Provimento nº 006/2006-CJRMB nas Comarcas do Interior, grupo em que está Marabá.</p>
+    <p>O FAQ das etiquetas BERNA da Secretaria de Informática do TJPA proíbe operação em lote diretamente pela etiqueta BERNA e orienta criar etiqueta própria, ler os documentos um a um e só então operar em lote pela etiqueta própria. A ferramenta segue esse fluxo: processo não marcado como lido fica fora do lote.</p>
+    <h3 style="margin-top:.8rem">Limites</h3>
+    <ul>
+      <li>Não altera o PJe, não pratica atos e não decide nada.</li>
+      <li>A ordem de atendimento é um guia, porque a lei fala em atendimento preferencial (Ferramenta I).</li>
+      <li>A urgência é reconhecida pelo juiz.</li>
+      <li>O Provimento nº 006/2006 remete ao CPC de 1973 e os modelos são validados pelo juízo; os prazos são preenchidos na validação.</li>
+      <li>Os incisos marcados para revisão ficam desabilitados até existir modelo validado pelo juízo.</li>
+      <li>O catálogo foi transcrito por OCR e está pendente de conferência contra o PDF oficial.</li>
+    </ul>
+    <p class="muted" style="margin-top:.8rem">Protótipo desenvolvido pela OAB/PA Subseção Marabá. Versão __VERSAO__, novembro de 2026.</p>
+  </div>
+</dialog>
+
+<div id="area-impressao"></div>
+<script>/*__JS__*/</script>
+</body>
+</html>

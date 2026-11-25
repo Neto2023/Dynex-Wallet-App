@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Distribuidor de Tarefas</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<header class="topo">
+  <img src="__LOGO__" alt="OAB Pará">
+  <div class="topo-titulos">
+    <div class="topo-inst">OAB/PA · Subseção <span class="vermelho">Marabá</span></div>
+    <h1>Distribuidor de Tarefas da Serventia</h1>
+    <div class="topo-sub">Protótipo __VERSAO__ · funciona no computador da vara, sem rede e sem envio de dados</div>
+  </div>
+  <nav class="topo-acoes" aria-label="Ações gerais">
+    <button type="button" id="bt-abrir-sessao">Abrir sessão</button>
+    <button type="button" id="bt-salvar-sessao">Salvar sessão</button>
+    <button type="button" id="bt-config">Configurações</button>
+    <button type="button" id="bt-sobre">Sobre</button>
+    <button type="button" id="bt-fonte-menos" class="discreto" title="Diminuir letra" aria-label="Diminuir letra">A-</button>
+    <button type="button" id="bt-fonte-mais" class="discreto" title="Aumentar letra" aria-label="Aumentar letra">A+</button>
+  </nav>
+</header>
+
+<div class="modulos">
+  <div class="abas" role="tablist" aria-label="Módulo">
+    <button type="button" role="tab" id="aba-mod-secretaria" data-modulo="secretaria" aria-selected="true">Secretaria: atos ordinatórios</button>
+    <button type="button" role="tab" id="aba-mod-gabinete" data-modulo="gabinete" aria-selected="false">Gabinete: minutas</button>
+  </div>
+</div>
+
+<section class="regra" aria-label="Regra de ordenação"><strong>Regra de ordenação:</strong> <span id="texto-regra"></span></section>
+
+<main>
+  <div class="grade">
+    <section class="cartao" id="cartao-entrada" aria-labelledby="tit-entrada">
+      <h2 id="tit-entrada"><span class="badge-num">1</span> Entrada de dados</h2>
+      <div class="abas secundarias" role="tablist" aria-label="Forma de entrada">
+        <button type="button" role="tab" data-entrada="texto" aria-selected="true">Colar texto</button>
+        <button type="button" role="tab" data-entrada="tabela" aria-selected="false">Tabela ou CSV</button>
+        <button type="button" role="tab" data-entrada="manual" aria-selected="false">Inclusão manual</button>
+      </div>
+
+      <div id="entrada-texto" class="painel-entrada">
+        <p class="muted pequeno">Cole a relação copiada do painel de tarefas do PJe. A ferramenta reconhece o número CNJ, as datas, a tarefa, as etiquetas e marcas de prioridade (como sugestão).</p>
+        <textarea id="txt-colar" class="cola" spellcheck="false" placeholder="Cole aqui a relação copiada do painel de tarefas do PJe"></textarea>
+        <div class="linha" style="margin-top:.4rem">
+          <button type="button" class="primario" id="bt-reconhecer">Reconhecer</button>
+          <button type="button" class="discreto" id="bt-exemplo">Carregar exemplo fictício</button>
+          <button type="button" class="discreto" id="bt-limpar-colar">Limpar</button>
+        </div>
+      </div>
+
+      <div id="entrada-tabela" class="painel-entrada" hidden>
+        <p class="muted pequeno">Cole uma tabela (copiada de planilha) ou importe um CSV. Depois diga qual coluna é cada informação. O mapeamento pode ser salvo como perfil.</p>
+        <textarea id="txt-tabela" class="cola" spellcheck="false" placeholder="Cole aqui a tabela (colunas separadas por tabulação, ponto e vírgula ou vírgula)"></textarea>
+        <div class="linha" style="margin-top:.4rem">
+          <button type="button" id="bt-ler-tabela" class="primario">Ler tabela</button>
+          <button type="button" id="bt-importar-csv">Importar CSV</button>
+          <button type="button" class="discreto" id="bt-exemplo-tabela">Carregar exemplo fictício</button>
+        </div>
+        <div id="mapeamento" hidden>
+          <h3 style="margin-top:.6rem">Mapeamento de colunas</h3>
+          <label class="pequeno"><input type="checkbox" id="chk-cabecalho" checked> A primeira linha é cabeçalho</label>
+          <div id="mapa-campos" class="linha" style="align-items:flex-start"></div>
+          <div class="linha">
+            <button type="button" class="primario" id="bt-aplicar-mapa">Aplicar mapeamento</button>
+            <button type="button" id="bt-salvar-perfil-mapa">Salvar perfil de mapeamento</button>
+            <button type="button" id="bt-abrir-perfil-mapa">Abrir perfil de mapeamento</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="entrada-manual" class="painel-entrada" hidden>
+        <div class="linha" style="align-items:flex-end">
+          <label class="campo"><span>Número do processo</span><input type="text" id="man-numero" class="num" placeholder="0000000-00.0000.8.14.0028" size="27"></label>
+          <label class="campo"><span>Data de entrada</span><input type="date" id="man-data"></label>
+          <label class="campo"><span>Hora</span><input type="time" id="man-hora"></label>
+        </div>
+        <div class="linha" style="align-items:flex-end">
+          <label class="campo" style="flex:1 1 220px"><span>Tarefa</span><input type="text" id="man-tarefa"></label>
+          <label class="campo" style="flex:1 1 220px"><span>Providência</span><input type="text" id="man-providencia" placeholder="ex.: Prazo decorrido: remeter à conclusão"></label>
+        </div>
+        <div class="linha">
+          <label><input type="checkbox" id="man-sigiloso"> Sigiloso</label>
+          <button type="button" class="primario" id="bt-incluir-manual">Incluir processo</button>
+        </div>
+      </div>
+
+      <div id="previa" hidden>
+        <h3 style="margin-top:.8rem">Prévia: confira antes de aceitar</h3>
+        <div id="previa-resumo" class="info"></div>
+        <div id="previa-avisos"></div>
+        <div class="linha" style="align-items:flex-end">
+          <label class="campo"><span>Tarefa para os itens sem tarefa reconhecida</span><input type="text" id="previa-tarefa-padrao" size="30"></label>
+          <label class="campo" id="previa-prazo-campo"><span>Prazo do art. 228</span>
+            <select id="previa-tipo-prazo">
+              <option value="ato_5dias">Execução de ato (5 dias)</option>
+              <option value="conclusao_1dia">Remessa à conclusão (1 dia)</option>
+              <option value="nenhum">Sem prazo do art. 228</option>
+            </select>
+          </label>
+          <label class="campo" id="previa-minuta-campo" hidden><span>Tipo de minuta</span>
+            <select id="previa-tipo-minuta">
+              <option value="pela_tarefa">Pelo nome da tarefa (despacho se não reconhecer)</option>
+              <option value="despacho">Despacho</option>
+              <option value="decisao">Decisão</option>
+              <option value="sentenca">Sentença</option>
+            </select>
+          </label>
+        </div>
+        <div class="tabela-rolagem tabela-alta">
+          <table>
+            <thead><tr><th>Incluir</th><th>Processo</th><th>Data de entrada</th><th>Tarefa</th><th>Etiquetas</th><th>Sugestões</th><th>Situação</th></tr></thead>
+            <tbody id="previa-corpo"></tbody>
+          </table>
+        </div>
+        <div class="linha fim" style="margin-top:.5rem">
+          <button type="button" class="discreto" id="bt-descartar-previa">Descartar</button>
+          <button type="button" class="primario" id="bt-aceitar-previa">Aceitar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="cartao" id="cartao-servidores" aria-labelledby="tit-servidores">
+      <h2 id="tit-servidores"><span class="badge-num">2</span> Servidores e distribuição</h2>
+      <p class="muted pequeno">Nome curto (por exemplo, "Servidor A") e fator de carga: 100% padrão, 50% para meio expediente.</p>
+      <div class="tabela-rolagem">
+        <table>
+          <thead><tr><th>Servidor</th><th>Fator</th><th>Na fila</th><th></th></tr></thead>
+          <tbody id="servidores-corpo"></tbody>
+        </table>
+      </div>
+      <div class="linha" style="margin-top:.5rem">
+        <input type="text" id="novo-servidor" placeholder="Servidor A" size="14" aria-label="Nome do servidor">
+        <input type="number" id="novo-fator" value="100" min="10" max="100" step="5" style="width:5rem" aria-label="Fator de carga em %">
+        <button type="button" id="bt-add-servidor">Adicionar</button>
+      </div>
+      <div class="linha" style="margin-top:.6rem">
+        <button type="button" class="primario" id="bt-distribuir">Distribuir a carga</button>
+      </div>
+      <p id="resumo-distribuicao" class="info" hidden></p>
+      <p class="muted pequeno">Algoritmo: percorre as três listas na ordem e entrega cada processo ao servidor com a menor carga ponderada (atribuídos ÷ fator); empate pela ordem alfabética. Responsável fixado é mantido e entra na contagem.</p>
+    </section>
+  </div>
+
+  <section class="contadores" aria-label="Contadores" id="contadores"></section>
+
+  <section class="cartao" id="cartao-listas" aria-labelledby="tit-listas">
+    <h2 id="tit-listas"><span class="badge-num">3</span> Filas ordenadas</h2>
+    <div class="abas secundarias" role="tablist" aria-label="Listas" id="abas-listas">
+      <button type="button" role="tab" data-lista="urgencia" aria-selected="true">Urgência reconhecida pelo juiz <span class="contagem" data-cont="urgencia">0</span></button>
+      <button type="button" role="tab" data-lista="preferencia" aria-selected="false">Preferências legais <span class="contagem" data-cont="preferencia">0</span></button>
+      <button type="button" role="tab" data-lista="geral" aria-selected="false">Lista geral <span class="contagem" data-cont="geral">0</span></button>
+      <button type="button" role="tab" data-lista="todas" aria-selected="false">Todas em sequência</button>
+      <button type="button" role="tab" data-lista="servidor" aria-selected="false">Fila por servidor</button>
+    </div>
+    <div class="linha" style="margin:.5rem 0" id="barra-servidor" hidden>
+      <label>Servidor: <select id="sel-servidor-fila"></select></label>
+    </div>
+    <div class="tabela-rolagem tabela-alta">
+      <table>
+        <thead><tr><th>Ordem</th><th>Processo</th><th>Providência</th><th>Na fila desde</th><th id="th-dias">Dias</th><th>Lista</th><th>Responsável</th><th>Alerta</th></tr></thead>
+        <tbody id="lista-corpo"></tbody>
+      </table>
+    </div>
+    <div class="linha" style="margin-top:.5rem">
+      <button type="button" id="bt-imprimir-lista">Imprimir esta lista</button>
+      <button type="button" id="bt-csv-lista">Exportar CSV desta lista</button>
+      <button type="button" id="bt-csv-completo">Exportar CSV completo</button>
+      <span style="flex:1"></span>
+      <button type="button" class="perigo" id="bt-limpar-modulo">Esvaziar o módulo</button>
+    </div>
+    <p class="nota-lista" id="nota-lista"></p>
+    <p class="nota-lista">Clique em um processo para editar: urgência (só com referência do pronunciamento do juiz), preferências, ordem definida pelo juiz, sigilo e responsável. Números de processos sigilosos saem mascarados no CSV e na impressão.</p>
+  </section>
+</main>
+
+<footer class="rodape-fixo" id="rodape"></footer>
+
+<dialog id="dlg-processo" aria-labelledby="dlg-processo-tit">
+  <div class="dlg-topo"><h2 id="dlg-processo-tit">Processo</h2><button type="button" data-fechar="dlg-processo">Fechar</button></div>
+  <div class="dlg-corpo" id="dlg-processo-corpo"></div>
+  <div class="dlg-rodape">
+    <button type="button" class="perigo" id="bt-remover-processo">Remover da fila</button>
+    <span style="flex:1"></span>
+    <button type="button" class="discreto" data-fechar="dlg-processo">Cancelar</button>
+    <button type="button" class="primario" id="bt-salvar-processo">Salvar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-config" aria-labelledby="dlg-config-tit">
+  <div class="dlg-topo"><h2 id="dlg-config-tit">Configurações</h2><button type="button" data-fechar="dlg-config">Fechar</button></div>
+  <div class="dlg-corpo">
+    <fieldset>
+      <legend>Contagem dos prazos do art. 228 do CPC</legend>
+      <label><input type="radio" name="modo-contagem" value="uteis"> Dias úteis</label>
+      <label style="margin-left:1rem"><input type="radio" name="modo-contagem" value="corridos"> Dias corridos</label>
+      <div class="pendente"><strong>[PENDENTE]</strong> A forma de contagem é decisão do juízo. Padrão provisório: dias úteis. Em dias úteis, sábados, domingos, feriados e suspensões cadastrados não contam. Em dias corridos, só as suspensões cadastradas são descontadas.</div>
+      <label class="campo"><span>Data de referência da contagem</span><input type="date" id="cfg-referencia"></label>
+      <p class="muted pequeno">Deixe em branco para usar a data de hoje.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Feriados (um por linha, dd/mm/aaaa)</legend>
+      <textarea id="cfg-feriados" rows="5" spellcheck="false"></textarea>
+      <div class="linha"><button type="button" class="discreto" id="bt-feriados-nacionais">Inserir feriados nacionais de 2026</button></div>
+      <p class="muted pequeno">A lista inserida traz só os feriados nacionais fixados em lei federal. Feriados forenses, estaduais e municipais e pontos facultativos devem ser conferidos com o calendário do TJPA e incluídos pela vara.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Suspensões (uma por linha, dd/mm/aaaa a dd/mm/aaaa)</legend>
+      <textarea id="cfg-suspensoes" rows="3" spellcheck="false"></textarea>
+    </fieldset>
+    <fieldset>
+      <legend>Marco inicial</legend>
+      <p id="cfg-marco"></p>
+      <div class="pendente"><strong>[PENDENTE]</strong> Confirmar com a Direção de Secretaria qual data o painel do PJe mostra.</div>
+    </fieldset>
+    <fieldset>
+      <legend>Perfil da vara</legend>
+      <p class="muted pequeno">O perfil guarda a forma de contagem, os feriados, as suspensões e o mapeamento de colunas. Não guarda processos.</p>
+      <div class="linha"><button type="button" id="bt-salvar-perfil">Salvar perfil (.json)</button><button type="button" id="bt-abrir-perfil">Abrir perfil</button></div>
+    </fieldset>
+    <div id="cfg-erros"></div>
+  </div>
+  <div class="dlg-rodape">
+    <button type="button" class="discreto" data-fechar="dlg-config">Cancelar</button>
+    <button type="button" class="primario" id="bt-aplicar-config">Aplicar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-sobre" aria-labelledby="dlg-sobre-tit">
+  <div class="dlg-topo"><h2 id="dlg-sobre-tit">Sobre o Distribuidor de Tarefas</h2><button type="button" data-fechar="dlg-sobre">Fechar</button></div>
+  <div class="dlg-corpo">
+    <h3>O que faz e o que não faz</h3>
+    <p>Organiza as filas da secretaria (atos ordinatórios) e do gabinete (minutas) na ordem que o CPC indica: urgência reconhecida pelo juiz, preferências legais e lista geral, cada uma por antiguidade.</p>
+    <p>Sinaliza os processos que passaram dos prazos do servidor (art. 228 do CPC) e as preferências concorrentes, e distribui a carga de forma equilibrada entre os servidores.</p>
+    <p>Não acessa o PJe, não pratica atos, não reconhece urgência e não decide a ordem entre preferências concorrentes.</p>
+    <h3 style="margin-top:.8rem">Base normativa</h3>
+    <p>O art. 12 do CPC determina que juízes e tribunais atendam, preferencialmente, à ordem cronológica de conclusão para proferir sentença ou acórdão, excluídas, entre outras, as preferências legais e as metas do CNJ (§ 2º, VII) e a causa que exija urgência no julgamento, assim reconhecida por decisão fundamentada (§ 2º, IX). O art. 153 dirige ao escrivão ou chefe de secretaria a mesma ordem preferencial, pela ordem cronológica de recebimento para publicação e efetivação dos pronunciamentos, excluídos os atos urgentes, assim reconhecidos pelo juiz no pronunciamento a ser efetivado (§ 2º, I), e as preferências legais (§ 2º, II), que formam lista própria com ordem cronológica entre si (§ 3º).</p>
+    <p>O art. 228 fixa ao serventuário o prazo de 1 dia para remeter os autos conclusos e de 5 dias para executar os atos processuais, contados da conclusão do ato anterior imposto por lei ou da ciência da ordem do juiz, com certificação do dia e da hora da ciência (§ 1º). O art. 1.048 assegura prioridade à parte ou interessado com 60 anos ou mais ou portador de doença grave, aos procedimentos do ECA, à vítima de violência doméstica e familiar e às causas sobre normas gerais de licitação e contratação, independentemente de deferimento, à vista da prova da condição (§ 4º). O art. 203, § 4º, dispensa de despacho os atos meramente ordinatórios, revistos pelo juiz quando necessário.</p>
+    <p>No Pedido de Providências 0005150-49.2024.2.00.0000 (24/02/2026), o CNJ assentou que, havendo preferências legais concorrentes, a ordem entre elas é definida pelo magistrado no caso concreto, sem pesos sistêmicos. Por isso a ferramenta não atribui peso a nenhuma preferência: apenas sinaliza a concorrência para decisão do juiz.</p>
+    <h3 style="margin-top:.8rem">Limites</h3>
+    <ul>
+      <li>Não altera o PJe, não pratica atos e não decide nada.</li>
+      <li>A ordem proposta é um guia, porque a lei fala em atendimento preferencial.</li>
+      <li>A urgência é reconhecida pelo juiz.</li>
+      <li>O Provimento nº 006/2006 remete ao CPC de 1973 e os modelos de ato (Ferramenta II) são validados pelo juízo.</li>
+      <li>A data considerada é a de entrada na tarefa do PJe, usada como aproximação do marco do art. 228 do CPC.</li>
+    </ul>
+    <p class="muted" style="margin-top:.8rem">Protótipo desenvolvido pela OAB/PA Subseção Marabá. Versão __VERSAO__, novembro de 2026.</p>
+  </div>
+</dialog>
+
+<div id="area-impressao"></div>
+<script>/*__JS__*/</script>
+</body>
+</html>
