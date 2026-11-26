@@ -1,0 +1,1849 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Atos Ordinatórios em Lote</title>
+<style>/* Identidade OAB/PA Subseção Marabá: navy #001333, azul #0095D9, vermelho #D1232D só para alerta. */
+:root {
+  --navy: #001333;
+  --azul: #0095D9;
+  --azul-escuro: #006FA3;
+  --vermelho: #D1232D;
+  --fundo-1: #E0F2FB;
+  --fundo-2: #EBF6FD;
+  --zebra: #F2F2F2;
+  --borda: #C9D6E2;
+  --texto: #1B1B1B;
+  --texto-2: #4A5563;
+  --ok: #1E6B3A;
+  --fonte: Arial, Helvetica, sans-serif;
+  --fonte-ato: "Times New Roman", Times, serif;
+  --fonte-num: Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #FFFFFF; color: var(--texto); }
+body { font-family: var(--fonte); font-size: 0.875rem; line-height: 1.45; }
+h1, h2, h3 { color: var(--navy); margin: 0; line-height: 1.25; }
+h2 { font-size: 1rem; }
+h3 { font-size: 0.9rem; }
+p { margin: 0.4rem 0; }
+a { color: var(--azul-escuro); }
+.num { font-family: var(--fonte-num); white-space: nowrap; }
+.muted { color: var(--texto-2); }
+.pequeno { font-size: 0.8rem; }
+[hidden] { display: none !important; }
+
+/* Topo */
+.topo { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.25rem; border-bottom: 3px double var(--navy); background: #FFFFFF; flex-wrap: wrap; }
+.topo img { height: 46px; width: auto; }
+.topo-titulos { flex: 1 1 260px; min-width: 0; }
+.topo-inst { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--azul-escuro); font-weight: bold; }
+.topo-inst .vermelho { color: var(--vermelho); }
+.topo h1 { font-size: 1.25rem; }
+.topo-sub { font-size: 0.78rem; color: var(--texto-2); }
+.topo-acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+
+/* Botões e campos */
+button, .botao { font: inherit; font-size: 0.82rem; border: 1px solid var(--azul-escuro); background: #FFFFFF; color: var(--azul-escuro); padding: 0.35rem 0.7rem; border-radius: 3px; cursor: pointer; line-height: 1.3; }
+button:hover:not(:disabled) { background: var(--fundo-2); }
+button.primario { background: var(--azul-escuro); color: #FFFFFF; }
+button.primario:hover:not(:disabled) { background: var(--navy); }
+button.discreto { border-color: var(--borda); color: var(--texto-2); }
+button.perigo { border-color: var(--vermelho); color: var(--vermelho); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--azul); outline-offset: 1px; }
+input[type=text], input[type=number], input[type=date], input[type=time], select, textarea { font: inherit; font-size: 0.85rem; border: 1px solid var(--borda); border-radius: 3px; padding: 0.3rem 0.45rem; background: #FFFFFF; color: var(--texto); max-width: 100%; }
+textarea { width: 100%; resize: vertical; }
+textarea.cola { min-height: 9rem; font-family: var(--fonte-num); font-size: 0.78rem; }
+label { display: inline-flex; gap: 0.35rem; align-items: center; }
+.campo { display: flex; flex-direction: column; align-items: stretch; gap: 0.2rem; margin: 0.35rem 0; }
+.campo > span { font-size: 0.78rem; font-weight: bold; color: var(--navy); }
+.linha { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.linha.fim { justify-content: flex-end; }
+
+/* Abas */
+.abas { display: flex; gap: 0; border-bottom: 2px solid var(--navy); flex-wrap: wrap; }
+.abas button { border: 1px solid transparent; border-bottom: none; border-radius: 3px 3px 0 0; background: transparent; color: var(--navy); padding: 0.45rem 0.9rem; font-weight: bold; margin-bottom: -2px; }
+.abas button[aria-selected=true] { background: var(--navy); color: #FFFFFF; }
+.abas.secundarias { border-bottom-width: 1px; border-bottom-color: var(--borda); }
+.abas.secundarias button { font-weight: normal; padding: 0.35rem 0.7rem; margin-bottom: -1px; }
+.abas.secundarias button[aria-selected=true] { background: var(--fundo-1); color: var(--navy); border-color: var(--borda); font-weight: bold; }
+.abas .contagem { display: inline-block; min-width: 1.4rem; padding: 0 0.3rem; margin-left: 0.3rem; border-radius: 9px; background: rgba(0, 149, 217, 0.15); font-size: 0.75rem; text-align: center; }
+.modulos { padding: 0.6rem 1.25rem 0; }
+
+main { padding: 0.75rem 1.25rem 1rem; }
+
+/* Cartões */
+.cartao { border: 1px solid var(--borda); border-radius: 4px; padding: 0.75rem 0.9rem; background: #FFFFFF; margin-bottom: 0.9rem; min-width: 0; }
+.cartao > h2 { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.badge-num { display: inline-flex; align-items: center; justify-content: center; width: 1.45rem; height: 1.45rem; border-radius: 3px; background: var(--navy); color: #FFFFFF; font-size: 0.8rem; }
+.grade { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 0.9rem; }
+.grade-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1.25fr); gap: 0.9rem; align-items: start; }
+@media (max-width: 1100px) { .grade-3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .grade-3 > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 820px) { .grade, .grade-3 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Caixas de destaque */
+.regra { margin: 0.6rem 1.25rem 0; padding: 0.5rem 0.8rem; background: var(--fundo-1); border-left: 4px solid var(--azul); font-size: 0.85rem; }
+.regra strong { color: var(--navy); }
+.info { background: var(--fundo-2); border-left: 4px solid var(--azul); padding: 0.45rem 0.7rem; margin: 0.5rem 0; font-size: 0.82rem; }
+.alerta-caixa { background: #FFFFFF; border: 2px solid var(--vermelho); border-radius: 4px; padding: 0.55rem 0.75rem; margin: 0.6rem 0; }
+.alerta-caixa h3 { color: var(--vermelho); margin-bottom: 0.3rem; }
+.alerta-caixa ol { margin: 0.2rem 0 0.2rem 1.2rem; padding: 0; }
+.pendente { background: #FFF8E5; border-left: 4px solid #B07A00; padding: 0.45rem 0.7rem; margin: 0.5rem 0; font-size: 0.8rem; }
+
+/* Contadores */
+.contadores { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem; margin-bottom: 0.9rem; }
+.contador { border: 1px solid var(--borda); border-top: 4px solid var(--navy); border-radius: 4px; padding: 0.45rem 0.7rem; background: #FFFFFF; }
+.contador .valor { font-size: 1.5rem; font-weight: bold; color: var(--navy); line-height: 1.1; }
+.contador .rotulo { font-size: 0.78rem; color: var(--texto-2); }
+.contador.urg { border-top-color: var(--navy); }
+.contador.pref { border-top-color: var(--azul); }
+.contador.ger { border-top-color: #7A8796; }
+.contador.alerta { border-top-color: var(--vermelho); }
+.contador.alerta .valor { color: var(--vermelho); }
+@media (max-width: 820px) { .contadores { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Tabelas */
+.tabela-rolagem { overflow-x: auto; border: 1px solid var(--borda); border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+th { background: var(--azul-escuro); color: #FFFFFF; text-align: left; font-weight: bold; padding: 0.4rem 0.5rem; white-space: nowrap; position: sticky; top: 0; }
+td { padding: 0.35rem 0.5rem; border-top: 1px solid #E3E8EE; vertical-align: top; }
+tbody tr:nth-child(even) { background: var(--zebra); }
+tbody tr.clicavel { cursor: pointer; }
+tbody tr.clicavel:hover { background: var(--fundo-2); }
+td.vazio { text-align: center; color: var(--texto-2); padding: 1rem; }
+td.dias { text-align: right; font-variant-numeric: tabular-nums; }
+.tabela-alta { max-height: 26rem; overflow-y: auto; }
+
+/* Selos */
+.selo { display: inline-block; font-size: 0.7rem; font-weight: bold; padding: 0.05rem 0.35rem; border-radius: 3px; border: 1px solid var(--borda); color: var(--texto-2); background: #FFFFFF; white-space: nowrap; margin: 0.05rem 0.15rem 0.05rem 0; }
+.selo.sigilo { border-color: var(--navy); color: var(--navy); }
+.selo.urg { background: var(--navy); color: #FFFFFF; border-color: var(--navy); }
+.selo.pref { background: var(--fundo-1); color: var(--navy); border-color: var(--azul); }
+.selo.alerta { border-color: var(--vermelho); color: var(--vermelho); }
+.selo.ok { border-color: var(--ok); color: var(--ok); }
+.selo.revisar { border-color: #B07A00; color: #8A5F00; background: #FFF8E5; }
+.alertas-celula { color: var(--vermelho); font-size: 0.78rem; }
+.alertas-celula div + div { margin-top: 0.1rem; }
+.sugestao { color: var(--azul-escuro); font-size: 0.78rem; }
+
+/* Diálogos */
+dialog { border: 1px solid var(--navy); border-radius: 4px; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); color: var(--texto); }
+dialog::backdrop { background: rgba(0, 19, 51, 0.45); }
+.dlg-topo { background: var(--navy); color: #FFFFFF; padding: 0.55rem 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.dlg-topo h2 { color: #FFFFFF; }
+.dlg-topo button { background: transparent; color: #FFFFFF; border-color: #FFFFFF; }
+.dlg-corpo { padding: 0.75rem 0.9rem; overflow-y: auto; max-height: calc(100vh - 170px); }
+.dlg-rodape { padding: 0.55rem 0.9rem; border-top: 1px solid var(--borda); display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+fieldset { border: 1px solid var(--borda); border-radius: 3px; margin: 0.5rem 0; padding: 0.45rem 0.7rem; }
+legend { font-weight: bold; color: var(--navy); font-size: 0.82rem; padding: 0 0.3rem; }
+
+/* Texto de ato */
+.texto-ato { font-family: var(--fonte-ato); font-size: 1rem; line-height: 1.5; text-align: justify; white-space: pre-wrap; border: 1px solid var(--borda); padding: 0.75rem 0.9rem; background: #FFFFFF; position: relative; min-height: 6rem; }
+.texto-ato.rascunho { background: repeating-linear-gradient(-45deg, #FFFFFF, #FFFFFF 14px, #FDF1F1 14px, #FDF1F1 28px); }
+.tarja { display: block; text-align: center; font-family: var(--fonte); font-weight: bold; font-size: 0.85rem; color: #FFFFFF; background: var(--vermelho); padding: 0.25rem; margin: -0.75rem -0.9rem 0.6rem; letter-spacing: 0.04em; }
+.literal { font-family: var(--fonte-ato); font-size: 0.95rem; text-align: justify; background: var(--fundo-2); padding: 0.5rem 0.65rem; border-left: 3px solid var(--azul); }
+textarea.modelo { font-family: var(--fonte-ato); font-size: 0.95rem; min-height: 7rem; }
+
+/* Rodapé */
+.rodape-fixo { position: sticky; bottom: 0; background: var(--navy); color: #FFFFFF; font-size: 0.76rem; padding: 0.4rem 1.25rem; z-index: 5; }
+.nota-lista { font-size: 0.76rem; color: var(--texto-2); margin-top: 0.45rem; }
+
+.aviso-flutuante { position: fixed; right: 1rem; bottom: 2.6rem; max-width: min(420px, calc(100vw - 32px)); background: var(--navy); color: #FFFFFF; padding: 0.55rem 0.8rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); z-index: 30; font-size: 0.85rem; }
+.aviso-flutuante.erro { background: var(--vermelho); }
+.aviso-flutuante.ok { background: var(--ok); }
+
+#area-impressao { display: none; }
+
+@media (max-width: 640px) {
+  .topo, main, .modulos { padding-left: 16px; padding-right: 16px; }
+  .regra { margin-left: 16px; margin-right: 16px; }
+  .rodape-fixo { padding-left: 16px; padding-right: 16px; }
+}
+
+@media print {
+  body { padding: 0; font-size: 10pt; }
+  .rodape-fixo, .topo-acoes, .nao-imprimir, dialog, .aviso-flutuante { display: none !important; }
+  body.imprimindo > *:not(#area-impressao) { display: none !important; }
+  body.imprimindo #area-impressao { display: block; }
+  th { position: static; background: #FFFFFF !important; color: #000000; border-bottom: 2px solid #000000; }
+  tbody tr:nth-child(even) { background: #FFFFFF; }
+  td { border-top: 1px solid #999999; }
+  .impressao-cab { border-bottom: 2px solid #000000; margin-bottom: 0.4cm; padding-bottom: 0.2cm; }
+  .impressao-cab h1 { font-size: 13pt; color: #000000; }
+  .impressao-rodape { margin-top: 0.4cm; font-size: 8pt; border-top: 1px solid #000000; padding-top: 0.15cm; }
+  @page { margin: 1.5cm 1.2cm; }
+}
+
+.lista-incisos { max-height: 22rem; overflow-y: auto; border: 1px solid var(--borda); border-radius: 3px; }
+.lista-incisos button { display: block; width: 100%; text-align: left; border: none; border-bottom: 1px solid #E3E8EE; border-radius: 0; color: var(--texto); padding: 0.35rem 0.55rem; background: #FFFFFF; }
+.lista-incisos button:nth-child(even) { background: var(--zebra); }
+.lista-incisos button[aria-pressed=true] { background: var(--fundo-1); box-shadow: inset 4px 0 0 var(--azul); font-weight: bold; }
+.lista-incisos button[aria-disabled=true] { color: #7A8796; }
+.lista-incisos .rom { display: inline-block; min-width: 3.2rem; font-weight: bold; color: var(--navy); }
+.lista-incisos button[aria-disabled=true] .rom { color: #7A8796; }
+.etiqueta-sugerida { font-family: var(--fonte-num); background: var(--navy); color: #FFFFFF; padding: 0.2rem 0.5rem; border-radius: 3px; }
+.ato-item { border: 1px solid var(--borda); border-radius: 3px; padding: 0.5rem 0.6rem; margin: 0.4rem 0; }
+.ato-item .texto-ato { min-height: 0; font-size: 0.92rem; }
+tr.nao-lido td { color: var(--texto-2); }
+#processos-corpo .selo { white-space: normal; }
+#processos-corpo td.num { font-size: 0.78rem; }
+</style>
+</head>
+<body>
+<header class="topo">
+  <img src="data:image/png;base64,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" alt="OAB Pará">
+  <div class="topo-titulos">
+    <div class="topo-inst">OAB/PA · Subseção <span class="vermelho">Marabá</span></div>
+    <h1>Gerador de Atos Ordinatórios em Lote</h1>
+    <div class="topo-sub">Protótipo v1 · Provimento nº 006/2006-CJRMB · funciona no computador da vara, sem rede e sem envio de dados</div>
+  </div>
+  <nav class="topo-acoes" aria-label="Ações gerais">
+    <button type="button" id="bt-abrir-sessao">Abrir sessão</button>
+    <button type="button" id="bt-salvar-sessao">Salvar sessão</button>
+    <button type="button" id="bt-sobre">Sobre</button>
+    <button type="button" id="bt-fonte-menos" class="discreto" title="Diminuir letra" aria-label="Diminuir letra">A-</button>
+    <button type="button" id="bt-fonte-mais" class="discreto" title="Aumentar letra" aria-label="Aumentar letra">A+</button>
+  </nav>
+</header>
+
+<section class="regra" aria-label="Fluxo"><strong>Fluxo:</strong> 1º escolher a hipótese do provimento · 2º colar os processos lidos um a um e marcados com a etiqueta própria da vara · 3º gerar o texto com modelo validado pelo juízo.</section>
+
+<main>
+  <div class="grade-3">
+    <section class="cartao" aria-labelledby="tit-hipotese">
+      <h2 id="tit-hipotese"><span class="badge-num">1</span> Hipótese</h2>
+      <p class="muted pequeno">Art. 1º, § 2º, do Provimento nº 006/2006-CJRMB (processos cíveis).</p>
+      <div class="lista-incisos" id="lista-incisos" role="group" aria-label="Incisos"></div>
+      <div id="detalhe-inciso" style="margin-top:.6rem"></div>
+      <div class="pendente pequeno" id="aviso-ocr"></div>
+      <div class="alerta-caixa" id="caixa-vedacoes">
+        <h3>Vedações: a secretaria não subscreve (art. 1º, § 3º)</h3>
+        <ol id="lista-vedacoes"></ol>
+        <p class="pequeno">A ferramenta não oferece modelo para nenhum desses documentos.</p>
+      </div>
+    </section>
+
+    <section class="cartao" aria-labelledby="tit-processos">
+      <h2 id="tit-processos"><span class="badge-num">2</span> Processos</h2>
+      <div class="info pequeno" id="lembrete-berna"></div>
+      <p class="pequeno">Etiqueta própria sugerida para o PJe: <span class="etiqueta-sugerida" id="etiqueta-sugerida">LOTE · REVISADO</span>
+        <button type="button" class="discreto" id="bt-copiar-etiqueta">Copiar</button></p>
+      <textarea id="txt-processos" class="cola" spellcheck="false" placeholder="Cole a relação dos processos já marcados no PJe com a etiqueta própria da vara"></textarea>
+      <div class="linha" style="margin-top:.4rem">
+        <button type="button" class="primario" id="bt-reconhecer-processos">Reconhecer números</button>
+        <button type="button" class="discreto" id="bt-exemplo-processos">Carregar exemplo fictício</button>
+        <button type="button" class="discreto" id="bt-limpar-processos">Esvaziar relação</button>
+      </div>
+      <div id="avisos-processos"></div>
+      <div class="tabela-rolagem tabela-alta" style="margin-top:.5rem">
+        <table>
+          <thead><tr><th>Processo</th><th>Lido individualmente</th><th></th></tr></thead>
+          <tbody id="processos-corpo"></tbody>
+        </table>
+      </div>
+      <p class="pequeno" id="contagem-lidos" style="margin-top:.4rem"></p>
+    </section>
+
+    <section class="cartao" aria-labelledby="tit-texto">
+      <h2 id="tit-texto"><span class="badge-num">3</span> Texto</h2>
+      <div class="linha" style="align-items:flex-end">
+        <label class="campo"><span>Servidor responsável pelo lote</span><input type="text" id="servidor" size="18" placeholder="Servidor A"></label>
+        <label class="campo" style="flex:1 1 200px"><span>Modelo</span><select id="sel-modelo"></select></label>
+        <button type="button" id="bt-novo-modelo">Novo modelo</button>
+      </div>
+      <div id="editor-modelo"></div>
+      <div class="linha" style="margin-top:.3rem">
+        <button type="button" class="discreto" id="bt-importar-modelos">Importar modelos (.json)</button>
+        <button type="button" class="discreto" id="bt-exportar-modelos">Exportar modelos (.json)</button>
+      </div>
+      <h3 style="margin-top:.7rem">Prévia do ato</h3>
+      <div id="previa-ato" class="texto-ato"></div>
+      <div id="impedimentos" style="margin-top:.4rem"></div>
+      <div class="linha fim" style="margin-top:.5rem">
+        <button type="button" class="primario" id="bt-gerar" disabled>Gerar atos do lote</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="cartao" id="cartao-saida" aria-labelledby="tit-saida" hidden>
+    <h2 id="tit-saida"><span class="badge-num">4</span> Saída do lote</h2>
+    <div id="saida-resumo" class="info"></div>
+    <div id="saida-unico"></div>
+    <div class="linha" style="margin:.5rem 0">
+      <button type="button" id="bt-baixar-txt">Baixar .txt do lote</button>
+      <button type="button" id="bt-baixar-relacao">Baixar relação .csv</button>
+    </div>
+    <details>
+      <summary>Texto por processo</summary>
+      <div id="saida-por-processo"></div>
+    </details>
+  </section>
+
+  <section class="cartao" aria-labelledby="tit-auditoria">
+    <h2 id="tit-auditoria"><span class="badge-num">5</span> Registro de auditoria local</h2>
+    <p class="muted pequeno">Cada geração fica registrada nesta sessão, para a revisão pelo juiz prevista no art. 2º do provimento. O registro vai junto no "Salvar sessão".</p>
+    <div class="tabela-rolagem">
+      <table>
+        <thead><tr><th>Data e hora</th><th>Servidor</th><th>Inciso</th><th>Modelo</th><th>Versão</th><th>Validado por</th><th>Processos</th></tr></thead>
+        <tbody id="auditoria-corpo"></tbody>
+      </table>
+    </div>
+    <div class="linha" style="margin-top:.5rem"><button type="button" id="bt-csv-auditoria">Exportar auditoria (.csv)</button></div>
+  </section>
+</main>
+
+<footer class="rodape-fixo" id="rodape">Entrada: relação de processos lidos e etiquetados pelo próprio servidor no PJe. Nenhum dado sai do computador da vara.</footer>
+
+<dialog id="dlg-sobre" aria-labelledby="dlg-sobre-tit">
+  <div class="dlg-topo"><h2 id="dlg-sobre-tit">Sobre o Gerador de Atos Ordinatórios em Lote</h2><button type="button" data-fechar="dlg-sobre">Fechar</button></div>
+  <div class="dlg-corpo">
+    <h3>O que faz e o que não faz</h3>
+    <p>Gera em lote o texto dos atos ordinatórios que o Provimento nº 006/2006-CJRMB dispensa de despacho, com a menção expressa ao provimento, artigo, parágrafo e inciso.</p>
+    <p>Só trabalha com processos que o servidor leu um a um e marcou com etiqueta própria da vara, e só gera lote com modelo validado pelo juízo.</p>
+    <p>Não acessa o PJe, não junta nem assina documentos, não decide se um inciso se aplica e não oferece modelo para os documentos vedados pelo art. 1º, § 3º.</p>
+    <h3 style="margin-top:.8rem">Base normativa</h3>
+    <p>O art. 203, § 4º, do CPC dispõe que os atos meramente ordinatórios, como a juntada e a vista obrigatória, independem de despacho, devendo ser praticados de ofício pelo servidor e revistos pelo juiz quando necessário. O Provimento nº 006/2006-CJRMB (DJ nº 3750, de 20/10/2006) lista, no art. 1º, os atos que independem de despacho e são realizados pelo Diretor de Secretaria ou seu substituto: 28 hipóteses nos processos cíveis (§ 2º) e os documentos que a secretaria não pode subscrever (§ 3º). O art. 2º exige que todo ato mencione expressamente o provimento, artigo, parágrafo e inciso, e permite a revisão pelo juiz de ofício ou a requerimento. O Provimento nº 006/2009-CJCI, art. 1º, autoriza a aplicação do Provimento nº 006/2006-CJRMB nas Comarcas do Interior, grupo em que está Marabá.</p>
+    <p>O FAQ das etiquetas BERNA da Secretaria de Informática do TJPA proíbe operação em lote diretamente pela etiqueta BERNA e orienta criar etiqueta própria, ler os documentos um a um e só então operar em lote pela etiqueta própria. A ferramenta segue esse fluxo: processo não marcado como lido fica fora do lote.</p>
+    <h3 style="margin-top:.8rem">Limites</h3>
+    <ul>
+      <li>Não altera o PJe, não pratica atos e não decide nada.</li>
+      <li>A ordem de atendimento é um guia, porque a lei fala em atendimento preferencial (Ferramenta I).</li>
+      <li>A urgência é reconhecida pelo juiz.</li>
+      <li>O Provimento nº 006/2006 remete ao CPC de 1973 e os modelos são validados pelo juízo; os prazos são preenchidos na validação.</li>
+      <li>Os incisos marcados para revisão ficam desabilitados até existir modelo validado pelo juízo.</li>
+      <li>O catálogo foi transcrito por OCR e está pendente de conferência contra o PDF oficial.</li>
+    </ul>
+    <p class="muted" style="margin-top:.8rem">Protótipo desenvolvido pela OAB/PA Subseção Marabá. Versão v1, novembro de 2026.</p>
+  </div>
+</dialog>
+
+<div id="area-impressao"></div>
+<script>(function () {
+'use strict';
+const EXEMPLO_LOTE = "Relação de processos com a etiqueta LOTE XV · REVISADO (dados fictícios)\n0000301-01.2026.8.14.0028\n0000302-01.2026.8.14.0028\n0000303-01.2026.8.14.0028\n0000304-01.2026.8.14.0028\n0000305-01.2026.8.14.0028\n0000302-01.2026.8.14.0028\n";
+
+// ---- src/comum/datas.js ----
+// Datas sem fuso horário. Toda data circula como texto local "AAAA-MM-DDTHH:MM:SS".
+// A contagem de dias usa apenas a parte da data, convertida para um número serial (dias desde 1970-01-01).
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function dataValida(a, m, d) {
+  if (!(a >= 1900 && a <= 2200 && m >= 1 && m <= 12 && d >= 1 && d <= 31)) return false;
+  const dt = new Date(Date.UTC(a, m - 1, d));
+  return dt.getUTCFullYear() === a && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+function montarISO(a, m, d, h = 0, mi = 0, s = 0) {
+  return `${a}-${pad2(m)}-${pad2(d)}T${pad2(h)}:${pad2(mi)}:${pad2(s)}`;
+}
+
+function horaValida(h, mi, s) {
+  return h >= 0 && h <= 23 && mi >= 0 && mi <= 59 && s >= 0 && s <= 59;
+}
+
+// dd/mm/aaaa com hora opcional (hh:mm ou hh:mm:ss), separada por espaço, vírgula, "às" ou hífen.
+const RE_DATA_BR = /(?<!\d)(\d{2})\/(\d{2})\/(\d{4})(?:\s*(?:,|às|as|-)?\s*(\d{2}):(\d{2})(?::(\d{2}))?)?(?!\d)/g;
+
+function extrairDatas(texto) {
+  const out = [];
+  const s = String(texto ?? '');
+  for (const m of s.matchAll(RE_DATA_BR)) {
+    const d = +m[1], mes = +m[2], a = +m[3];
+    if (!dataValida(a, mes, d)) continue;
+    let h = 0, mi = 0, se = 0;
+    if (m[4] !== undefined) {
+      h = +m[4]; mi = +m[5]; se = m[6] !== undefined ? +m[6] : 0;
+      if (!horaValida(h, mi, se)) { h = 0; mi = 0; se = 0; }
+    }
+    out.push({ iso: montarISO(a, mes, d, h, mi, se), texto: m[0], indice: m.index });
+  }
+  return out;
+}
+
+// Aceita "dd/mm/aaaa[ hh:mm[:ss]]" ou "aaaa-mm-dd[(T| )hh:mm[:ss]]". Devolve ISO local ou null.
+function lerData(texto) {
+  const s = String(texto ?? '').trim();
+  if (!s) return null;
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (iso) {
+    const a = +iso[1], m = +iso[2], d = +iso[3];
+    if (!dataValida(a, m, d)) return null;
+    const h = iso[4] ? +iso[4] : 0, mi = iso[5] ? +iso[5] : 0, se = iso[6] ? +iso[6] : 0;
+    if (!horaValida(h, mi, se)) return null;
+    return montarISO(a, m, d, h, mi, se);
+  }
+  const br = extrairDatas(s);
+  return br.length ? br[0].iso : null;
+}
+
+function partesISO(iso) {
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (!m) return null;
+  return { a: +m[1], m: +m[2], d: +m[3], h: m[4] ? +m[4] : 0, mi: m[5] ? +m[5] : 0, s: m[6] ? +m[6] : 0 };
+}
+
+function diaSerial(iso) {
+  const p = partesISO(iso);
+  if (!p) return null;
+  return Math.round(Date.UTC(p.a, p.m - 1, p.d) / 86400000);
+}
+
+function serialParaDia(serial) {
+  const dt = new Date(serial * 86400000);
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
+}
+
+// 0 = domingo ... 6 = sábado
+function diaDaSemana(serial) {
+  return new Date(serial * 86400000).getUTCDay();
+}
+
+function formatarDataBR(iso, { hora = true } = {}) {
+  const p = partesISO(iso);
+  if (!p) return '';
+  const data = `${pad2(p.d)}/${pad2(p.m)}/${p.a}`;
+  if (!hora || (p.h === 0 && p.mi === 0 && p.s === 0)) return data;
+  return `${data} ${pad2(p.h)}:${pad2(p.mi)}`;
+}
+
+function agoraISO(dt = new Date()) {
+  return montarISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate(), dt.getHours(), dt.getMinutes(), dt.getSeconds());
+}
+
+function hojeISO(dt = new Date()) {
+  return montarISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+}
+
+
+// ---- src/comum/prazos.js ----
+
+// Prazos do serventuário (CPC, art. 228): 1 dia para remeter os autos conclusos e 5 dias para executar os atos.
+// A forma de contagem (dias úteis ou corridos) é decisão do juízo. [PENDENTE] Padrão provisório: dias úteis.
+
+const LIMITES_228 = Object.freeze({
+  conclusao_1dia: 1,
+  ato_5dias: 5,
+  nenhum: null,
+});
+
+const ROTULOS_228 = Object.freeze({
+  conclusao_1dia: 'Remessa à conclusão (1 dia)',
+  ato_5dias: 'Execução de ato (5 dias)',
+  nenhum: 'Sem prazo do art. 228',
+});
+
+const CONTAGEM_PADRAO = Object.freeze({
+  modo: 'uteis',
+  feriados: [],      // ["2026-11-20", ...]
+  suspensoes: [],    // [{ inicio: "2026-12-20", fim: "2027-01-20" }, ...]
+});
+
+function prepararContagem(config = {}) {
+  const modo = config.modo === 'corridos' ? 'corridos' : 'uteis';
+  const feriados = new Set();
+  for (const f of config.feriados || []) {
+    const s = diaSerial(f);
+    if (s !== null) feriados.add(s);
+  }
+  const suspensoes = [];
+  for (const p of config.suspensoes || []) {
+    const i = diaSerial(p.inicio), f = diaSerial(p.fim);
+    if (i !== null && f !== null) suspensoes.push([Math.min(i, f), Math.max(i, f)]);
+  }
+  return { modo, feriados, suspensoes };
+}
+
+function suspenso(serial, cfg) {
+  return cfg.suspensoes.some(([i, f]) => serial >= i && serial <= f);
+}
+
+// Conta os dias a partir do dia seguinte ao da entrada até o dia de referência, inclusive.
+// Dias úteis: exclui sábados, domingos, feriados cadastrados e períodos de suspensão.
+// Dias corridos: conta todos os dias, exceto os períodos de suspensão cadastrados.
+function diasDecorridos(entradaIso, referenciaIso, config = CONTAGEM_PADRAO) {
+  const ini = diaSerial(entradaIso);
+  const fim = diaSerial(referenciaIso);
+  if (ini === null || fim === null) return null;
+  if (fim <= ini) return 0;
+  const cfg = config && config.feriados instanceof Set ? config : prepararContagem(config);
+  let n = 0;
+  for (let s = ini + 1; s <= fim; s++) {
+    if (suspenso(s, cfg)) continue;
+    if (cfg.modo === 'uteis') {
+      const wd = diaDaSemana(s);
+      if (wd === 0 || wd === 6) continue;
+      if (cfg.feriados.has(s)) continue;
+    }
+    n++;
+  }
+  return n;
+}
+
+// Avalia o processo contra o prazo do art. 228. É alerta de gestão: não calcula nem sugere sanção.
+function avaliarPrazo228(processo, referenciaIso, config = CONTAGEM_PADRAO) {
+  const dias = processo.dataEntrada ? diasDecorridos(processo.dataEntrada, referenciaIso, config) : null;
+  const limite = LIMITES_228[processo.tipoPrazo228] ?? null;
+  const vencido = limite !== null && dias !== null && dias > limite;
+  let alerta = null;
+  if (vencido) alerta = limite === 1 ? 'Prazo de 1 dia vencido' : `Prazo de ${limite} dias vencido`;
+  return { dias, limite, vencido, alerta };
+}
+
+// Lê a lista de feriados digitada (uma data por linha, dd/mm/aaaa). Texto após a data é ignorado.
+function lerFeriados(texto) {
+  const feriados = [], erros = [];
+  String(texto || '').split(/\r?\n/).forEach((linha, i) => {
+    const t = linha.trim();
+    if (!t) return;
+    const iso = lerData(t.split(/\s+/)[0]);
+    if (iso) feriados.push(iso.slice(0, 10));
+    else erros.push(`Linha ${i + 1}: data não reconhecida (${t})`);
+  });
+  return { feriados: [...new Set(feriados)].sort(), erros };
+}
+
+// Uma suspensão por linha: "dd/mm/aaaa a dd/mm/aaaa" (ou uma única data).
+function lerSuspensoes(texto) {
+  const suspensoes = [], erros = [];
+  String(texto || '').split(/\r?\n/).forEach((linha, i) => {
+    const t = linha.trim();
+    if (!t) return;
+    const datas = t.match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}/g) || [];
+    const ini = datas[0] ? lerData(datas[0]) : null;
+    const fim = datas[1] ? lerData(datas[1]) : ini;
+    if (ini && fim) suspensoes.push({ inicio: ini.slice(0, 10), fim: fim.slice(0, 10) });
+    else erros.push(`Linha ${i + 1}: período não reconhecido (${t})`);
+  });
+  return { suspensoes, erros };
+}
+
+function feriadosParaTexto(feriados) {
+  return (feriados || []).map((f) => formatarDataBR(f, { hora: false })).join('\n');
+}
+
+function suspensoesParaTexto(suspensoes) {
+  return (suspensoes || [])
+    .map((s) => `${formatarDataBR(s.inicio, { hora: false })} a ${formatarDataBR(s.fim, { hora: false })}`)
+    .join('\n');
+}
+
+// Feriados nacionais fixados em lei federal para 2026 (Leis 662/1949, 6.802/1980 e 14.759/2023).
+// Não inclui feriados forenses, estaduais, municipais nem pontos facultativos: conferir com o calendário do TJPA.
+const FERIADOS_NACIONAIS_2026 = Object.freeze([
+  '2026-01-01', '2026-04-21', '2026-05-01', '2026-09-07', '2026-10-12',
+  '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25',
+]);
+
+
+
+// ---- src/comum/mascara.js ----
+// Máscara de processo sigiloso, no padrão já usado pela lista de ordem cronológica de julgamento do TJPA:
+// NNNNNNN-DD.AAAA.J.TR.OOOO  ->  Sigiloso-DD.AAAA.J.TR.OOOO
+
+const RE_CNJ_PARTES = /^(\d{7})-(\d{2})\.(\d{4})\.(\d)\.(\d{2})\.(\d{4})$/;
+
+function mascararNumero(numero) {
+  const m = String(numero || '').trim().match(RE_CNJ_PARTES);
+  if (!m) return 'Sigiloso';
+  return `Sigiloso-${m[2]}.${m[3]}.${m[4]}.${m[5]}.${m[6]}`;
+}
+
+// Número para exportação pública (CSV, impressão): mascara quando o processo é sigiloso.
+function numeroPublico(processo) {
+  return processo && processo.sigiloso ? mascararNumero(processo.numero) : String(processo?.numero || '');
+}
+
+
+// ---- src/comum/parser.js ----
+
+// Parser tolerante da relação copiada do painel de tarefas do PJe.
+// [PENDENTE] O formato exato da cópia do painel do TJPA não é conhecido: o parser trabalha por linha
+// e por bloco (uma linha com número CNJ abre um bloco; as linhas seguintes sem número pertencem a ele).
+// Tudo o que é inferido (prioridade, sigilo, tarefa) aparece como sugestão para o servidor confirmar.
+
+const RE_CNJ = /\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b/g;
+
+function normalizarBusca(s) {
+  return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+function extrairNumerosCNJ(texto) {
+  return [...String(texto ?? '').matchAll(RE_CNJ)].map((m) => m[0]);
+}
+
+// Palavras-chave de prioridade (CPC, art. 1.048). Servem só para SUGERIR; o servidor confirma.
+const PALAVRAS_PREFERENCIA = Object.freeze({
+  idoso: [/\bidos[oa]s?\b/, /\b60 anos\b/, /estatuto d[ao] (pessoa )?idos[oa]/, /\b10\.741\b/],
+  doenca_grave: [/doencas? graves?/],
+  eca: [/\beca\b/, /\bcrianca/, /\badolescente/, /infancia e (da )?juventude/, /\b8\.069\b/],
+  violencia_domestica: [/violencia domestica/, /maria da penha/, /\b11\.340\b/],
+  licitacao: [/\blicitac/, /\b14\.133\b/, /\b8\.666\b/, /contratac(ao|oes) publica/],
+});
+
+function sugerirPreferencias(texto) {
+  const t = normalizarBusca(texto);
+  return Object.keys(PALAVRAS_PREFERENCIA).filter((k) => PALAVRAS_PREFERENCIA[k].some((re) => re.test(t)));
+}
+
+function sugerirSigilo(texto) {
+  return /segredo de justica|\bsigilos[oa]s?\b|\bsigilo\b/.test(normalizarBusca(texto));
+}
+
+function extrairEtiquetas(texto) {
+  const s = String(texto ?? '');
+  const out = [];
+  for (const m of s.matchAll(/etiquetas?\s*:\s*([^\n|\t]+)/gi)) {
+    m[1].split(/[,;]/).forEach((e) => out.push(e.trim()));
+  }
+  for (const m of s.matchAll(/\[([^\]\n]{2,60})\]/g)) out.push(m[1].trim());
+  return [...new Set(out.filter(Boolean))];
+}
+
+// Termos que costumam aparecer em nomes de tarefa do PJe. Um campo que contenha um deles é tratado
+// como "tarefa". Campos sem esses termos (por exemplo, classe e nome das partes) são ignorados de propósito.
+const TERMOS_TAREFA = Object.freeze([
+  'prazo decorrido', 'conclus', 'intima', 'expedi', 'minutar', 'minuta', 'despacho', 'decisao', 'sentenc',
+  'cumprimento', 'cumprir', 'analisar', 'aguardar', 'certific', 'juntad', 'juntar', 'publica', 'arquiv',
+  'triagem', 'citac', 'citar', 'remeter', 'encaminhar', 'elaborar', 'preparar', 'providencia', 'assinar',
+  'audiencia', 'oficio', 'mandado', 'precatoria', 'retorno', 'diligencia', 'calculo', 'alvara',
+]);
+
+const SEPARADORES_CAMPO = /\t|\s\|\s|\||;|\s{2,}/;
+
+function limparCampo(s) {
+  return s.replace(RE_CNJ, ' ').replace(/\d{2}\/\d{2}\/\d{4}(\s*(,|às|as|-)?\s*\d{2}:\d{2}(:\d{2})?)?/g, ' ')
+    .replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').replace(/^[\s:,.\-]+|[\s:,.\-]+$/g, '');
+}
+
+function rotulado(texto, rotulo) {
+  const re = new RegExp(`${rotulo}\\s*:\\s*([^\\n|\\t;]+)`, 'i');
+  const m = String(texto).match(re);
+  return m ? m[1].trim() : '';
+}
+
+function reconhecerTarefa(textoBloco) {
+  const explicita = rotulado(textoBloco, 'tarefa');
+  if (explicita) return limparCampo(explicita);
+  for (const linha of String(textoBloco).split('\n')) {
+    for (const campo of linha.split(SEPARADORES_CAMPO)) {
+      if (/^\s*etiquetas?\s*:/i.test(campo)) continue;
+      const c = limparCampo(campo);
+      if (c.length < 3) continue;
+      const n = normalizarBusca(c);
+      if (TERMOS_TAREFA.some((t) => n.includes(t))) return c.slice(0, 120);
+    }
+  }
+  return '';
+}
+
+function montarItem(numero, textoBloco, linhaOrigem) {
+  const datas = extrairDatas(textoBloco);
+  const datasEncontradas = [...new Set(datas.map((d) => d.iso))];
+  return {
+    numero,
+    dataEntrada: datasEncontradas[0] || null,
+    datasEncontradas,
+    tarefa: reconhecerTarefa(textoBloco),
+    providencia: rotulado(textoBloco, 'provid[eê]ncia'),
+    etiquetas: extrairEtiquetas(textoBloco),
+    sugestoesPreferencia: sugerirPreferencias(textoBloco),
+    sugestaoSigiloso: sugerirSigilo(textoBloco),
+    origem: textoBloco.trim().slice(0, 300),
+    linhaOrigem,
+  };
+}
+
+// Mantém a ocorrência mais antiga de cada número e avisa. Sem data conta como a mais recente.
+function deduplicar(itens) {
+  const porNumero = new Map();
+  const contagem = new Map();
+  for (const it of itens) {
+    contagem.set(it.numero, (contagem.get(it.numero) || 0) + 1);
+    const atual = porNumero.get(it.numero);
+    if (!atual) { porNumero.set(it.numero, it); continue; }
+    const a = atual.dataEntrada, b = it.dataEntrada;
+    if (b && (!a || b < a)) porNumero.set(it.numero, it);
+  }
+  const avisos = [];
+  for (const [numero, n] of contagem) {
+    if (n > 1) {
+      const mantido = porNumero.get(numero);
+      avisos.push({ numero, mensagem: `aparece ${n} vezes; mantida a ocorrência mais antiga`, dataMantida: mantido.dataEntrada });
+    }
+  }
+  // preserva a ordem da primeira aparição
+  const vistos = new Set();
+  const unicos = [];
+  for (const it of itens) {
+    if (vistos.has(it.numero)) continue;
+    vistos.add(it.numero);
+    unicos.push(porNumero.get(it.numero));
+  }
+  return { itens: unicos, avisos };
+}
+
+function resumir(itens, ignorados) {
+  const { itens: unicos, avisos } = deduplicar(itens);
+  const incompletos = [];
+  for (const it of unicos) {
+    if (!it.dataEntrada) incompletos.push({ tipo: 'sem_data', numero: it.numero, trecho: it.origem, linha: it.linhaOrigem });
+    if (it.datasEncontradas && it.datasEncontradas.length > 1) {
+      incompletos.push({ tipo: 'varias_datas', numero: it.numero, trecho: it.origem, linha: it.linhaOrigem });
+    }
+  }
+  for (const ig of ignorados) incompletos.push({ tipo: 'sem_numero', numero: null, trecho: ig.trecho, linha: ig.linha });
+  return { itens: unicos, incompletos, avisos };
+}
+
+// Caminho 1: texto livre colado do painel.
+function reconhecerTextoLivre(texto) {
+  const linhas = String(texto ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const blocos = [];
+  const ignorados = [];
+  let atual = null;
+  linhas.forEach((linha, i) => {
+    const nums = [...linha.matchAll(RE_CNJ)];
+    if (!nums.length) {
+      if (atual) atual.linhas.push(linha);
+      else if (linha.trim()) ignorados.push({ linha: i + 1, trecho: linha.trim().slice(0, 200) });
+      return;
+    }
+    nums.forEach((m, k) => {
+      const ini = k === 0 ? 0 : m.index;
+      const fim = k + 1 < nums.length ? nums[k + 1].index : linha.length;
+      atual = { numero: m[0], linhas: [linha.slice(ini, fim)], linhaOrigem: i + 1 };
+      blocos.push(atual);
+    });
+  });
+  const itens = blocos.map((b) => montarItem(b.numero, b.linhas.join('\n'), b.linhaOrigem));
+  return resumir(itens, ignorados);
+}
+
+// Caminho 2: tabela colada (TSV) ou CSV.
+function detectarSeparador(texto) {
+  const primeira = String(texto ?? '').split(/\r?\n/).find((l) => l.trim()) || '';
+  const cont = { '\t': 0, ';': 0, ',': 0 };
+  let aspas = false;
+  for (const ch of primeira) {
+    if (ch === '"') aspas = !aspas;
+    else if (!aspas && ch in cont) cont[ch]++;
+  }
+  if (cont['\t'] > 0) return '\t';
+  return cont[';'] >= cont[','] && cont[';'] > 0 ? ';' : (cont[','] > 0 ? ',' : '\t');
+}
+
+function lerTabela(texto, separador) {
+  const s = String(texto ?? '').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const sep = separador || detectarSeparador(s);
+  const linhas = [];
+  let linha = [], campo = '', aspas = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (aspas) {
+      if (ch === '"') {
+        if (s[i + 1] === '"') { campo += '"'; i++; } else aspas = false;
+      } else campo += ch;
+      continue;
+    }
+    if (ch === '"' && campo === '') { aspas = true; continue; }
+    if (ch === sep) { linha.push(campo); campo = ''; continue; }
+    if (ch === '\n') { linha.push(campo); linhas.push(linha); linha = []; campo = ''; continue; }
+    campo += ch;
+  }
+  if (campo !== '' || linha.length) { linha.push(campo); linhas.push(linha); }
+  return { separador: sep, linhas: linhas.filter((l) => l.some((c) => c.trim() !== '')) };
+}
+
+const CAMPOS_MAPEAMENTO = Object.freeze([
+  { chave: 'numero', rotulo: 'Número do processo', obrigatorio: true },
+  { chave: 'dataEntrada', rotulo: 'Data de entrada na tarefa', obrigatorio: true },
+  { chave: 'tarefa', rotulo: 'Tarefa' },
+  { chave: 'providencia', rotulo: 'Providência' },
+  { chave: 'etiquetas', rotulo: 'Etiquetas' },
+  { chave: 'prioridade', rotulo: 'Prioridade' },
+]);
+
+// Sugere o mapeamento pelo nome das colunas do cabeçalho.
+function sugerirMapeamento(cabecalho) {
+  const mapa = {};
+  const testes = {
+    numero: /processo|numero|n[ºo°]/,
+    dataEntrada: /entrada|data|desde|recebid/,
+    tarefa: /tarefa/,
+    providencia: /providencia/,
+    etiquetas: /etiqueta/,
+    prioridade: /prioridade|preferencia/,
+  };
+  (cabecalho || []).forEach((col, idx) => {
+    const n = normalizarBusca(col);
+    for (const [chave, re] of Object.entries(testes)) {
+      if (mapa[chave] === undefined && re.test(n)) { mapa[chave] = idx; break; }
+    }
+  });
+  return mapa;
+}
+
+// Perfil de mapeamento: guarda o índice e o nome da coluna, para funcionar mesmo se as colunas mudarem de lugar.
+function criarPerfilMapeamento(mapa, cabecalho, temCabecalho) {
+  const colunas = {};
+  for (const [chave, idx] of Object.entries(mapa)) {
+    if (idx === null || idx === undefined || idx < 0) continue;
+    colunas[chave] = { indice: idx, nome: temCabecalho && cabecalho ? String(cabecalho[idx] ?? '') : '' };
+  }
+  return { tipo: 'perfil-mapeamento', versao: 1, temCabecalho: !!temCabecalho, colunas };
+}
+
+function aplicarPerfilMapeamento(perfil, cabecalho) {
+  const mapa = {};
+  const nomes = (cabecalho || []).map((c) => normalizarBusca(c).trim());
+  for (const [chave, col] of Object.entries(perfil?.colunas || {})) {
+    const porNome = col.nome ? nomes.indexOf(normalizarBusca(col.nome).trim()) : -1;
+    mapa[chave] = porNome >= 0 ? porNome : col.indice;
+  }
+  return mapa;
+}
+
+function aplicarMapeamento(linhas, mapa, { temCabecalho = true } = {}) {
+  const corpo = temCabecalho ? linhas.slice(1) : linhas;
+  const desloc = temCabecalho ? 2 : 1;
+  const cel = (l, chave) => {
+    const idx = mapa[chave];
+    return idx === undefined || idx === null || idx < 0 ? '' : String(l[idx] ?? '').trim();
+  };
+  const itens = [];
+  const ignorados = [];
+  corpo.forEach((l, i) => {
+    const numeros = extrairNumerosCNJ(cel(l, 'numero'));
+    if (!numeros.length) {
+      ignorados.push({ linha: i + desloc, trecho: l.join(' | ').slice(0, 200) });
+      return;
+    }
+    const data = lerData(cel(l, 'dataEntrada'));
+    const prioridade = cel(l, 'prioridade');
+    const etiquetas = cel(l, 'etiquetas').split(/[,;|]/).map((e) => e.trim()).filter(Boolean);
+    itens.push({
+      numero: numeros[0],
+      dataEntrada: data,
+      datasEncontradas: data ? [data] : [],
+      tarefa: cel(l, 'tarefa'),
+      providencia: cel(l, 'providencia'),
+      etiquetas,
+      sugestoesPreferencia: sugerirPreferencias(prioridade),
+      sugestaoSigiloso: sugerirSigilo(prioridade),
+      origem: l.join(' | ').slice(0, 300),
+      linhaOrigem: i + desloc,
+    });
+  });
+  return resumir(itens, ignorados);
+}
+
+
+// ---- src/comum/exporta.js ----
+// Exportações locais. Nada é enviado: os arquivos são gerados no navegador e baixados pelo próprio usuário.
+
+function celulaCSV(v, sep = ';') {
+  const s = v === null || v === undefined ? '' : String(v);
+  if (s.includes('"') || s.includes(sep) || /[\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+// CSV com ponto e vírgula e BOM, para abrir direto no Excel em português.
+function paraCSV(cabecalho, linhas, sep = ';') {
+  const out = [cabecalho, ...linhas].map((l) => l.map((c) => celulaCSV(c, sep)).join(sep));
+  return '﻿' + out.join('\r\n') + '\r\n';
+}
+
+function carimboArquivo(dt = new Date()) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}_${p(dt.getHours())}${p(dt.getMinutes())}`;
+}
+
+function baixarArquivo(nome, conteudo, tipo = 'text/plain;charset=utf-8') {
+  if (typeof document === 'undefined') return;
+  const blob = new Blob([conteudo], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function lerArquivoTexto(arquivo) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result || ''));
+    r.onerror = () => reject(r.error);
+    r.readAsText(arquivo, 'utf-8');
+  });
+}
+
+async function copiarTexto(texto) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(texto);
+      return true;
+    }
+  } catch (e) { /* cai no método alternativo */ }
+  const ta = document.createElement('textarea');
+  ta.value = texto;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  ta.remove();
+  return ok;
+}
+
+// Preferências de interface (nunca dados de processo). Sempre em try/catch.
+function prefLer(chave, padrao) {
+  try {
+    const v = window.localStorage.getItem('oab-maraba-serventia:' + chave);
+    return v === null ? padrao : JSON.parse(v);
+  } catch (e) {
+    return padrao;
+  }
+}
+
+function prefGravar(chave, valor) {
+  try {
+    window.localStorage.setItem('oab-maraba-serventia:' + chave, JSON.stringify(valor));
+  } catch (e) { /* sem armazenamento: segue sem lembrar a preferência */ }
+}
+
+function escaparHTML(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+
+// ---- src/comum/interface.js ----
+
+// Utilitários de interface compartilhados pelas duas ferramentas (somente navegador).
+
+function $(sel, raiz = document) {
+  return raiz.querySelector(sel);
+}
+
+function $$(sel, raiz = document) {
+  return [...raiz.querySelectorAll(sel)];
+}
+
+// Cria elemento: el('button', { class: 'x', onclick: fn }, 'texto', filho...)
+function el(tag, attrs = {}, ...filhos) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+    else if (k === 'class') e.className = v;
+    else if (k === 'dataset') Object.assign(e.dataset, v);
+    else if (k === 'value') e.value = v;
+    else if (k === 'checked') e.checked = !!v;
+    else if (v === true) e.setAttribute(k, '');
+    else e.setAttribute(k, String(v));
+  }
+  for (const f of filhos.flat()) {
+    if (f === null || f === undefined || f === false) continue;
+    e.append(f instanceof Node ? f : document.createTextNode(String(f)));
+  }
+  return e;
+}
+
+// Anexa filhos ignorando null, undefined e false (o append nativo escreveria "null").
+function anexar(no, ...filhos) {
+  for (const f of filhos.flat()) {
+    if (f === null || f === undefined || f === false) continue;
+    no.append(f instanceof Node ? f : document.createTextNode(String(f)));
+  }
+  return no;
+}
+
+function limpar(no) {
+  while (no.firstChild) no.removeChild(no.firstChild);
+  return no;
+}
+
+let temporizadorAviso = null;
+function avisar(mensagem, tipo = 'info') {
+  let caixa = document.getElementById('aviso-flutuante');
+  if (!caixa) {
+    caixa = el('div', { id: 'aviso-flutuante', role: 'status', 'aria-live': 'polite' });
+    document.body.append(caixa);
+  }
+  caixa.className = `aviso-flutuante ${tipo}`;
+  caixa.textContent = mensagem;
+  caixa.hidden = false;
+  clearTimeout(temporizadorAviso);
+  temporizadorAviso = setTimeout(() => { caixa.hidden = true; }, tipo === 'erro' ? 7000 : 3500);
+}
+
+function abrirDialogo(id) {
+  const d = document.getElementById(id);
+  if (d && typeof d.showModal === 'function') d.showModal();
+  else if (d) d.setAttribute('open', '');
+}
+
+function fecharDialogo(id) {
+  const d = document.getElementById(id);
+  if (d && typeof d.close === 'function') d.close();
+  else if (d) d.removeAttribute('open');
+}
+
+// Botões com data-fechar="id" fecham o diálogo correspondente.
+function ligarFechamentoDialogos() {
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-fechar]');
+    if (b) fecharDialogo(b.dataset.fechar);
+  });
+}
+
+// Tamanho da fonte: preferência de interface, guardada em localStorage (sem dados de processo).
+function ligarTamanhoFonte(idMenos, idMais) {
+  let escala = Number(prefLer('fonte', 100)) || 100;
+  const aplicar = () => { document.documentElement.style.fontSize = `${escala}%`; prefGravar('fonte', escala); };
+  aplicar();
+  document.getElementById(idMenos)?.addEventListener('click', () => { escala = Math.max(80, escala - 10); aplicar(); });
+  document.getElementById(idMais)?.addEventListener('click', () => { escala = Math.min(150, escala + 10); aplicar(); });
+}
+
+function escolherArquivo(aceitar = '.json') {
+  return new Promise((resolve) => {
+    const i = el('input', { type: 'file', accept: aceitar, hidden: true });
+    i.addEventListener('change', () => { resolve(i.files && i.files[0] ? i.files[0] : null); i.remove(); });
+    document.body.append(i);
+    i.click();
+  });
+}
+
+// Imprime apenas o conteúdo montado na área de impressão.
+function imprimirConteudo(no) {
+  const area = document.getElementById('area-impressao');
+  limpar(area).append(no);
+  document.body.classList.add('imprimindo');
+  const fim = () => { document.body.classList.remove('imprimindo'); window.removeEventListener('afterprint', fim); };
+  window.addEventListener('afterprint', fim);
+  window.print();
+  setTimeout(fim, 1000);
+}
+
+
+// ---- src/atos-lote/catalogo-prov-006-2006.js ----
+// Provimento nº 006/2006-CJRMB (DJ nº 3750, de 20/10/2006), art. 1º, § 2º: atos que independem de despacho
+// nos processos cíveis. Aplicável às Comarcas do Interior pelo Provimento nº 006/2009-CJCI, art. 1º.
+//
+// [PENDENTE] Transcrição obtida por OCR dos PDFs oficiais do TJPA (CMSPortal idArquivo=3238 e idArquivo=192819).
+// Conferir cada inciso contra o PDF oficial antes de a v1 ir ao Fórum. As remissões são ao CPC de 1973.
+//
+// revisar: true marca o inciso com o selo "Revisar aplicabilidade com o juízo". Ele fica desabilitado até
+// existir modelo validado pelo juízo. A ferramenta não decide se o inciso ainda se aplica.
+
+const CONFERENCIA_CATALOGO = Object.freeze({
+  conferido: false,
+  fonte: 'OCR dos PDFs oficiais do TJPA (CMSPortal, idArquivo=3238 e idArquivo=192819)',
+  aviso: 'Texto obtido por OCR, pendente de conferência contra o PDF oficial. As remissões são ao CPC de 1973.',
+});
+
+const C = (inciso, rotulo, textoLiteral, remissaoCPC1973 = null, observacao = '', revisar = false) =>
+  Object.freeze({ inciso, rotulo, textoLiteral, remissaoCPC1973, observacao, revisar });
+
+const CATALOGO_PROV_006_2006 = Object.freeze([
+  C('I', 'Réu não localizado: manifestação do autor',
+    'a intimação da parte autora para se manifestar em 5 (cinco) dias quando a parte ré não for localizada e assim o certificar o Oficial de Justiça;'),
+  C('II', 'Réplica à contestação',
+    'a intimação da parte autora para se manifestar sobre a contestação, quando for apresentada preliminar (CPC, art. 301) ou quando forem juntados documentos, no prazo de 10 (dez) dias (CPC, art. 327);',
+    'arts. 301 e 327'),
+  C('III', 'Nova data de audiência não realizada',
+    'a designação, após o nada a opor do Juiz, de nova data para audiência, com a respectiva inclusão em pauta, sempre que o ato não se realizar por motivo justificado;',
+    null, 'Depende do nada a opor do juiz, conforme o próprio texto do inciso.'),
+  C('IV', 'Cumprimento de carta precatória recebida',
+    'a expedição dos mandados e ofícios necessários para o cumprimento de cartas precatórias, independentemente de despacho do Juiz, observando-se o que dispõem os arts. 202, 204 e 209 do Código de Processo Civil, com a inclusão, após o nada a opor do Juiz, de audiência em pauta pela própria Secretaria, se for o caso, e a imediata devolução dos respectivos autos ao juízo de origem após a prática do ato deprecado, ressalvadas as diligências relativas a ordens de prisão civil ou correspondente soltura;',
+    'arts. 202, 204 e 209', 'Observar as vedações do art. 1º, § 3º (por exemplo, mandado de prisão civil e mandado de busca e apreensão).'),
+  C('V', 'Informações sobre carta precatória expedida',
+    'a solicitação de informações sobre o cumprimento de cartas precatórias expedidas, após o transcurso de 30 (trinta) dias de sua postagem;'),
+  C('VI', 'Documento novo: manifestação da parte',
+    'a intimação da parte para falar sobre a juntada de documento novo, no prazo de 05 (cinco) dias (CPC, art. 398);',
+    'art. 398'),
+  C('VII', 'Regularização de procuração',
+    'a intimação do advogado para fazer prova do mandato outorgado pelo constituinte, no prazo de 15 (quinze) dias, sempre que o patrono intervier no processo sem apresentar procuração, ressalvada a hipótese do art. 5º, § 1º, da Lei n. 8.906/94 (Estatuto da Advocacia e da OAB), e do art. 37 do Código de Processo Civil;',
+    'art. 37'),
+  C('VIII', 'Expedição de carta precatória',
+    'a expedição de carta precatória para a prática dos atos processuais que tiverem que se realizar fora dos limites territoriais da Comarca, inclusive os de citação e intimação, bastando, para tanto, a alegação da parte ou da certidão do Oficial de Justiça;',
+    null, 'Não abrange carta precatória para penhora e avaliação de bens, vedada pelo art. 1º, § 3º.'),
+  C('IX', 'Edital de citação',
+    'a expedição de edital de citação, com o prazo de 30 (trinta) dias, nas hipóteses do art. 231 do Código de Processo Civil (quando desconhecido ou incerto o réu; quando ignorado, incerto ou inacessível o lugar em que se encontrar; nos casos expressos em lei), observados os requisitos de seu art. 232;',
+    'arts. 231 e 232'),
+  C('X', 'Intimação do Ministério Público',
+    'a intimação do Ministério Público, sempre que sua intervenção no processo for obrigatória, observada a regra do art. 83, I do Código de Processo Civil (terá vista dos autos depois das partes);',
+    'art. 83, I'),
+  C('XI', 'Recolhimento de custas',
+    'a intimação da parte para recolher custas judiciais, inclusive as remanescentes, devendo, decorridos 30 (trinta) dias sem atendimento, certificar nos autos a respeito e promover a conclusão;'),
+  C('XII', 'Contrafé para citação',
+    'a intimação da parte autora para que providencie contrafé em número suficiente para a citação do(s) réu(s);',
+    null, 'Contrafé pressupõe cópias físicas; conferir a utilidade no processo eletrônico.'),
+  C('XIII', 'Habilitação de sucessores',
+    'a intimação da parte contrária para, em 5 (cinco) dias, manifestar-se sobre pedido de habilitação de sucessores da parte falecida;'),
+  C('XIV', 'Laudo pericial em atraso',
+    'a intimação do Perito para, em 10 (dez) dias, apresentar laudo, se vencido o prazo estabelecido pelo Juiz;'),
+  C('XV', 'Prosseguimento após suspensão',
+    'a intimação do autor ou exequente para dizer sobre o prosseguimento do feito, se decorrido o prazo deferido de suspensão do processo, sem a manifestação da parte interessada;'),
+  C('XVI', 'Ofício ao juízo deprecante',
+    'a expedição de ofício ao juízo deprecante, uma vez solicitadas informações a respeito do andamento da carta precatória ou do ofício;',
+    null, 'Conferir com o juízo a compatibilidade com o art. 1º, § 3º, item 4, que veda à secretaria subscrever ofícios a órgãos jurisdicionais do Poder Judiciário.', true),
+  C('XVII', 'Retorno de carta precatória',
+    'a abertura de vista à parte interessada, sempre que a carta precatória retornar a juízo;'),
+  C('XVIII', 'Registro de penhora por termo',
+    'a determinação de registro da penhora, realizada por termo, na hipótese de não efetuado o registro;'),
+  C('XIX', 'Resposta a ofício',
+    'a intimação das partes quanto a respostas a ofícios relativos a diligências determinadas pelo juízo;'),
+  C('XX', 'Diligência negativa: vista ao autor',
+    'a abertura de vista ao autor ou exequente das cartas e certidões negativas dos Oficiais de Justiça e das praças e leilões negativos;'),
+  C('XXI', 'Restituição de laudo ou mandado',
+    'a intimação do Perito ou Oficial de Justiça para restituir, em 24 (vinte e quatro) horas, laudo ou mandado não devolvido no prazo legal, após o que o fato será levado ao conhecimento do Juiz;'),
+  C('XXII', 'Retorno da instância superior',
+    'a intimação das partes para, em 15 (quinze) dias, procederem aos requerimentos pertinentes, retornando os autos da Instância Superior;'),
+  C('XXIII', 'Mandado de segurança: informações',
+    'nos mandados de segurança, chegando as informações da autoridade impetrada, verificar se são tempestivas. Em caso positivo, fazer a juntada e abrir, de pronto, vista dos autos ao Ministério Público. Com o parecer deste, realizar imediata conclusão para sentença. Se as informações forem intempestivas, ultimar juntada e certificar nos autos, efetuando incontinenti a conclusão;'),
+  C('XXIV', 'Restituição de autos por advogado',
+    'a intimação de advogado, pelo Diário da Justiça, para restituir em 24 (vinte e quatro) horas, processo não devolvido no prazo legal, sendo que no caso de não-atendimento o fato será levado ao conhecimento do Juiz;',
+    null, 'Pressupõe autos físicos com carga; sem correspondência direta no processo eletrônico.', true),
+  C('XXV', 'Cautelar: ação principal',
+    'a certidão, nas ações cautelares, depois de transcorrido 30 (trinta) dias da efetivação da medida, acerca da interposição ou não da ação principal, procedendo-se à conclusão dos autos ao Juiz em caso negativo;',
+    null, 'Ação cautelar autônoma do CPC de 1973; sem correspondência direta no CPC de 2015.', true),
+  C('XXVI', 'Separação e divórcio: audiência',
+    'a designação, após o nada a opor do Juiz, de audiência de conciliação, instrução e julgamento, bem como vista obrigatória ao Ministério Público, nas ações de separação e divórcio, consensual ou litigioso;',
+    null, 'Envolve separação judicial e regime anterior à EC 66/2010 e ao CPC de 2015.', true),
+  C('XXVII', 'Conversão de separação: apensamento',
+    'o apensamento aos autos de separação judicial nos pedidos de sua conversão em divórcio, quando a inicial não vier instruída com cópia da certidão de casamento com a devida averbação;',
+    null, 'Envolve separação judicial e apensamento de autos físicos.', true),
+  C('XXVIII', 'Conversão de separação: Ministério Público',
+    'a remessa dos autos ao Ministério Público para manifestação, nos pedidos de conversão de separação em divórcio;',
+    null, 'Envolve separação judicial e regime anterior à EC 66/2010.', true),
+]);
+
+function buscarInciso(inciso) {
+  return CATALOGO_PROV_006_2006.find((c) => c.inciso === inciso) || null;
+}
+
+// Vedações do art. 1º, § 3º: documentos que o Diretor de Secretaria NÃO subscreve nos processos cíveis.
+const VEDACOES_PROV_006_2006 = Object.freeze([
+  'Carta Precatória para penhora e avaliação de bens',
+  'Alvarás de qualquer natureza',
+  'Mandados de Prisão Civil',
+  'Ofícios e demais expedientes para Órgãos Administrativos ou Jurisdicionais do Poder Judiciário dos Estados ou da União',
+  'Informações para instruir Agravos de Instrumento',
+  'Mandados de Desocupação Voluntária ou Compulsória de Imóveis',
+  'Mandado de Busca e Apreensão de Bens',
+]);
+
+// Padrões de texto que indicam documento vedado como objeto do ato. Usados para bloquear modelos.
+const PADROES_VEDADOS = Object.freeze([
+  { re: /alvara/, motivo: 'alvará (art. 1º, § 3º, item 2)' },
+  { re: /mandados? de prisao/, motivo: 'mandado de prisão civil (art. 1º, § 3º, item 3)' },
+  { re: /prisao civil/, motivo: 'mandado de prisão civil (art. 1º, § 3º, item 3)' },
+  { re: /busca e apreensao/, motivo: 'mandado de busca e apreensão de bens (art. 1º, § 3º, item 7)' },
+  { re: /desocupacao/, motivo: 'mandado de desocupação de imóvel (art. 1º, § 3º, item 6)' },
+  { re: /precatoria[^.]{0,60}penhora|penhora e avaliacao/, motivo: 'carta precatória para penhora e avaliação (art. 1º, § 3º, item 1)' },
+  { re: /informac(ao|oes)[^.]{0,60}agravo de instrumento/, motivo: 'informações para agravo de instrumento (art. 1º, § 3º, item 5)' },
+]);
+
+
+// ---- src/atos-lote/modelos.js ----
+
+// Modelos de ato ordinatório. Só modelo "validado_pelo_juizo" gera lote; rascunho gera só prévia.
+// Variáveis permitidas: {{numero}}, {{prazo}}, {{data}}, {{servidor}}. Nada de dado de parte no modelo.
+// O fecho do art. 2º do provimento é inserido pelo gerador e não faz parte do texto do modelo.
+
+const STATUS_MODELO = Object.freeze({ rascunho: 'Rascunho', validado_pelo_juizo: 'Validado pelo juízo' });
+const VARIAVEIS_PERMITIDAS = Object.freeze(['numero', 'prazo', 'data', 'servidor']);
+
+// Impressão digital simples (FNV-1a, 32 bits) do conteúdo validado. Não é assinatura: serve para detectar
+// alteração do texto de um modelo validado num arquivo .json editado fora da ferramenta.
+function impressaoDigital(texto) {
+  let h = 0x811c9dc5;
+  const s = String(texto);
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+function conteudoValidado(m) {
+  return [m.inciso, m.titulo, m.texto, m.prazo].join('\u0001');
+}
+
+let contadorId = 0;
+function gerarIdModelo(inciso) {
+  contadorId++;
+  return `mod-${inciso}-${Date.now().toString(36)}-${contadorId}`;
+}
+
+function criarModelo({ id, inciso, titulo = '', texto = '', prazo = '' } = {}) {
+  return {
+    id: id || gerarIdModelo(inciso),
+    inciso,
+    titulo: String(titulo),
+    texto: String(texto),
+    prazo: String(prazo),
+    status: 'rascunho',
+    validadoPor: null,
+    validadoEm: null,
+    versao: 1,
+    conferencia: null,
+  };
+}
+
+function variaveisDoTexto(texto) {
+  return [...String(texto).matchAll(/\{\{\s*([^}]*?)\s*\}\}/g)].map((m) => m[1]);
+}
+
+function vedacoesNoTexto(texto) {
+  const t = normalizarBusca(texto);
+  return PADROES_VEDADOS.filter((p) => p.re.test(t)).map((p) => p.motivo);
+}
+
+// Problemas que impedem a validação (e, portanto, a geração do lote).
+function problemasDoModelo(m) {
+  const erros = [];
+  if (!buscarInciso(m.inciso)) erros.push('Inciso inexistente no catálogo do art. 1º, § 2º.');
+  if (!String(m.texto).trim()) erros.push('O texto do modelo está vazio.');
+  for (const v of variaveisDoTexto(m.texto)) {
+    if (!VARIAVEIS_PERMITIDAS.includes(v)) erros.push(`Variável não permitida: {{${v}}}. Use só {{numero}}, {{prazo}}, {{data}} e {{servidor}}.`);
+  }
+  if (variaveisDoTexto(m.texto).includes('prazo') && !String(m.prazo).trim()) {
+    erros.push('O modelo usa {{prazo}}: o prazo deve ser preenchido na validação (o código não converte prazo do CPC de 1973).');
+  }
+  for (const v of vedacoesNoTexto(m.texto)) erros.push(`Documento vedado à secretaria: ${v}.`);
+  if (/provimento\s*n?º?\s*006\/2006/i.test(m.texto)) erros.push('Não inclua o fecho no texto: ele é inserido automaticamente pelo gerador.');
+  return [...new Set(erros)];
+}
+
+// Qualquer alteração de texto, título ou prazo gera nova versão e volta o modelo para rascunho.
+function editarModelo(m, alteracoes = {}) {
+  const novo = { ...m };
+  let mudou = false;
+  for (const campo of ['titulo', 'texto', 'prazo']) {
+    if (campo in alteracoes && String(alteracoes[campo]) !== String(m[campo])) {
+      novo[campo] = String(alteracoes[campo]);
+      mudou = true;
+    }
+  }
+  if (!mudou) return m;
+  novo.versao = (m.versao || 1) + 1;
+  novo.status = 'rascunho';
+  novo.validadoPor = null;
+  novo.validadoEm = null;
+  novo.conferencia = null;
+  return novo;
+}
+
+function validarModelo(m, { por, em }) {
+  const erros = problemasDoModelo(m);
+  if (!String(por || '').trim()) erros.push('Informe quem validou o modelo pelo juízo.');
+  if (erros.length) return { ok: false, erros, modelo: m };
+  const novo = { ...m, status: 'validado_pelo_juizo', validadoPor: String(por).trim(), validadoEm: em };
+  novo.conferencia = impressaoDigital(conteudoValidado(novo));
+  return { ok: true, erros: [], modelo: novo };
+}
+
+function modeloValidado(m) {
+  return !!m && m.status === 'validado_pelo_juizo' && m.conferencia === impressaoDigital(conteudoValidado(m))
+    && problemasDoModelo(m).length === 0;
+}
+
+// O inciso marcado para revisão só se habilita com modelo validado.
+function incisoHabilitado(itemCatalogo, modelos) {
+  if (!itemCatalogo) return false;
+  if (!itemCatalogo.revisar) return true;
+  return (modelos || []).some((m) => m.inciso === itemCatalogo.inciso && modeloValidado(m));
+}
+
+function exportarModelos(modelos, dataHora) {
+  return JSON.stringify({ tipo: 'modelos-atos-ordinatorios', versaoFormato: 1, exportadoEm: dataHora, modelos }, null, 2);
+}
+
+// Importa modelos de um .json. Modelo validado cujo conteúdo não confere volta para rascunho.
+// Modelo que contenha documento vedado é recusado.
+function importarModelos(texto) {
+  const avisos = [];
+  let dados;
+  try { dados = JSON.parse(texto); } catch (e) { return { modelos: [], avisos: ['Arquivo inválido: não é um JSON.'] }; }
+  const lista = Array.isArray(dados) ? dados : dados?.modelos;
+  if (!Array.isArray(lista)) return { modelos: [], avisos: ['Arquivo sem lista de modelos.'] };
+  const modelos = [];
+  for (const bruto of lista) {
+    if (!bruto || !buscarInciso(bruto.inciso)) { avisos.push('Modelo ignorado: inciso inexistente.'); continue; }
+    const m = {
+      ...criarModelo({ id: bruto.id, inciso: bruto.inciso, titulo: bruto.titulo, texto: bruto.texto, prazo: bruto.prazo }),
+      status: bruto.status === 'validado_pelo_juizo' ? 'validado_pelo_juizo' : 'rascunho',
+      validadoPor: bruto.validadoPor || null,
+      validadoEm: bruto.validadoEm || null,
+      versao: Number.isInteger(bruto.versao) && bruto.versao > 0 ? bruto.versao : 1,
+      conferencia: bruto.conferencia || null,
+    };
+    if (vedacoesNoTexto(m.texto).length) { avisos.push(`Modelo "${m.titulo || m.id}" recusado: contém documento vedado à secretaria.`); continue; }
+    if (m.status === 'validado_pelo_juizo' && !modeloValidado(m)) {
+      avisos.push(`Modelo "${m.titulo || m.id}": conteúdo diferente do validado; voltou para rascunho.`);
+      m.status = 'rascunho'; m.validadoPor = null; m.validadoEm = null; m.conferencia = null;
+    }
+    modelos.push(m);
+  }
+  return { modelos, avisos };
+}
+
+// Modelo de demonstração que acompanha a v1, em rascunho (inciso XV).
+function modeloExemploXV() {
+  return criarModelo({
+    id: 'exemplo-XV-1',
+    inciso: 'XV',
+    titulo: 'Prosseguimento após suspensão (exemplo)',
+    texto: 'ATO ORDINATÓRIO. Decorrido o prazo de suspensão deferido sem manifestação da parte interessada, fica o(a) exequente intimado(a) para dizer sobre o prosseguimento do feito, no prazo de {{prazo}}.',
+    prazo: '',
+  });
+}
+
+
+// ---- src/atos-lote/gerador.js ----
+
+// Fecho obrigatório (Provimento nº 006/2006-CJRMB, art. 2º), inserido pelo gerador e não editável.
+const FECHO_ATO = 'Ato praticado com fundamento no art. 1º, § 2º, inciso {{inciso}}, do Provimento nº 006/2006-CJRMB, aplicável às Comarcas do Interior por força do Provimento nº 006/2009-CJCI, e no art. 203, § 4º, do CPC.';
+const TARJA_RASCUNHO = 'MODELO NÃO VALIDADO PELO JUÍZO';
+const LEMBRETE_BERNA = 'Só entra no lote o processo lido e etiquetado pelo servidor, como orienta o FAQ das etiquetas BERNA da Secretaria de Informática do TJPA.';
+const AVISO_NAO_LIDO = 'Não lido: fica fora do lote';
+
+function fecho(inciso) {
+  return FECHO_ATO.replace('{{inciso}}', inciso);
+}
+
+function sugerirEtiqueta(inciso) {
+  return `LOTE ${inciso} · REVISADO`;
+}
+
+function substituirVariaveis(texto, vars) {
+  return String(texto).replace(/\{\{\s*(numero|prazo|data|servidor)\s*\}\}/g, (_, v) => {
+    const val = vars[v];
+    return val === undefined || val === null || val === '' ? `[${v}]` : String(val);
+  });
+}
+
+function textoDoAto(modelo, { numero, data, servidor }) {
+  const corpo = substituirVariaveis(modelo.texto, { numero, prazo: modelo.prazo, data, servidor }).trim();
+  return `${corpo}\n\n${fecho(modelo.inciso)}`;
+}
+
+// Prévia: funciona com qualquer modelo; rascunho recebe a tarja.
+function gerarPrevia(modelo, { numero = '', data = '', servidor = '' } = {}) {
+  if (!modelo) return { texto: '', tarja: null };
+  return {
+    texto: textoDoAto(modelo, { numero: numero || '[número do processo]', data, servidor }),
+    tarja: modeloValidado(modelo) ? null : TARJA_RASCUNHO,
+  };
+}
+
+function processosLidos(processos) {
+  return (processos || []).filter((p) => p && p.lido === true);
+}
+
+// Motivos que impedem gerar o lote. Lista vazia = pode gerar.
+function impedimentosDoLote({ modelo, processos, servidor, modelos }) {
+  const motivos = [];
+  if (!modelo) motivos.push('Escolha um modelo.');
+  else {
+    if (!modeloValidado(modelo)) motivos.push('O modelo não está validado pelo juízo.');
+    problemasDoModelo(modelo).forEach((p) => motivos.push(p));
+    if (!incisoHabilitado(buscarInciso(modelo.inciso), modelos || [modelo])) motivos.push('Inciso marcado para revisão de aplicabilidade com o juízo.');
+  }
+  if (!processosLidos(processos).length) motivos.push('Marque ao menos um processo como lido individualmente.');
+  if (!String(servidor || '').trim()) motivos.push('Informe o servidor responsável pelo lote.');
+  return [...new Set(motivos)];
+}
+
+// Gera os atos do lote. Processo sem "Lido individualmente" nunca entra.
+function gerarLote({ modelo, processos, servidor, dataHora, modelos }) {
+  const impedimentos = impedimentosDoLote({ modelo, processos, servidor, modelos });
+  if (impedimentos.length) return { ok: false, impedimentos };
+  const data = formatarDataBR(dataHora, { hora: false });
+  const lidos = processosLidos(processos);
+  const excluidos = (processos || []).filter((p) => p && p.lido !== true).map((p) => p.numero);
+  const atos = lidos.map((p) => ({ numero: p.numero, texto: textoDoAto(modelo, { numero: p.numero, data, servidor }) }));
+  const identicos = atos.every((a) => a.texto === atos[0].texto);
+  const registro = {
+    dataHora,
+    servidor: String(servidor).trim(),
+    inciso: modelo.inciso,
+    modeloId: modelo.id,
+    modeloTitulo: modelo.titulo,
+    versaoModelo: modelo.versao,
+    validadoPor: modelo.validadoPor,
+    processos: lidos.map((p) => p.numero),
+  };
+  return {
+    ok: true,
+    atos,
+    textoUnico: identicos && atos.length ? atos[0].texto : null,
+    excluidos,
+    registro,
+    etiqueta: sugerirEtiqueta(modelo.inciso),
+  };
+}
+
+function textoArquivoLote(lote) {
+  const r = lote.registro;
+  const cab = [
+    `Lote de atos ordinatórios · inciso ${r.inciso} do art. 1º, § 2º, do Provimento nº 006/2006-CJRMB`,
+    `Modelo: ${r.modeloTitulo || r.modeloId} (versão ${r.versaoModelo}, validado por ${r.validadoPor || 'não informado'})`,
+    `Servidor: ${r.servidor} · Gerado em ${formatarDataBR(r.dataHora)}`,
+    `Processos: ${lote.atos.length}`,
+    '',
+  ];
+  const corpo = lote.atos.map((a) => `Processo ${a.numero}\n\n${a.texto}\n`).join('\n----------------------------------------\n\n');
+  return cab.join('\n') + '\n' + corpo;
+}
+
+function csvRelacaoLote(lote) {
+  const r = lote.registro;
+  return paraCSV(
+    ['Processo', 'Inciso', 'Modelo', 'Versão do modelo', 'Servidor', 'Data e hora'],
+    r.processos.map((n) => [n, r.inciso, r.modeloTitulo || r.modeloId, r.versaoModelo, r.servidor, formatarDataBR(r.dataHora)]),
+  );
+}
+
+// Registro de auditoria local (seção 5.7): uma linha por processo de cada geração.
+function csvAuditoria(registros) {
+  const linhas = [];
+  for (const r of registros || []) {
+    for (const n of r.processos) {
+      linhas.push([formatarDataBR(r.dataHora), r.servidor, r.inciso, r.modeloId, r.modeloTitulo || '', r.versaoModelo, r.validadoPor || '', n]);
+    }
+  }
+  return paraCSV(['Data e hora', 'Servidor', 'Inciso', 'ID do modelo', 'Modelo', 'Versão do modelo', 'Validado por', 'Processo'], linhas);
+}
+
+
+// ---- src/atos-lote/ui.js ----
+
+// Estado em memória. Dados de processo nunca vão para o localStorage: só para o arquivo de sessão que o usuário baixa.
+const estadoAtos = {
+  inciso: 'XV',
+  processos: [],
+  modelos: [modeloExemploXV()],
+  modeloId: 'exemplo-XV-1',
+  servidor: '',
+  auditoria: [],
+  ultimoLote: null,
+  edicao: null,
+};
+
+function modeloAtual() {
+  return estadoAtos.modelos.find((m) => m.id === estadoAtos.modeloId && m.inciso === estadoAtos.inciso) || null;
+}
+
+function modelosDoInciso() {
+  return estadoAtos.modelos.filter((m) => m.inciso === estadoAtos.inciso);
+}
+
+function edicaoPendente() {
+  const m = modeloAtual();
+  const e = estadoAtos.edicao;
+  return !!(m && e && (e.titulo !== m.titulo || e.texto !== m.texto || e.prazo !== m.prazo));
+}
+
+function renderizarTudoAtos() {
+  renderizarIncisos();
+  renderizarDetalheInciso();
+  renderizarProcessos();
+  renderizarSeletorModelo();
+  renderizarEditor();
+  renderizarPreviaEGerar();
+  renderizarAuditoria();
+}
+
+// ---------- Coluna 1: hipótese ----------
+
+function renderizarIncisos() {
+  const alvo = limpar($('#lista-incisos'));
+  for (const c of CATALOGO_PROV_006_2006) {
+    const habil = incisoHabilitado(c, estadoAtos.modelos);
+    alvo.append(el('button', {
+      type: 'button', 'aria-pressed': String(c.inciso === estadoAtos.inciso), 'aria-disabled': habil ? null : 'true',
+      dataset: { inciso: c.inciso }, title: habil ? c.rotulo : 'Revisar aplicabilidade com o juízo',
+    }, el('span', { class: 'rom' }, c.inciso), c.rotulo, habil ? null : el('div', {}, el('span', { class: 'selo revisar' }, 'Revisar aplicabilidade com o juízo'))));
+  }
+}
+
+function renderizarDetalheInciso() {
+  const c = buscarInciso(estadoAtos.inciso);
+  const habil = incisoHabilitado(c, estadoAtos.modelos);
+  const alvo = limpar($('#detalhe-inciso'));
+  anexar(alvo,
+    el('h3', {}, `Inciso ${c.inciso}: ${c.rotulo}`),
+    el('div', { class: 'literal' }, c.textoLiteral),
+    c.remissaoCPC1973 ? el('p', { class: 'pequeno muted' }, `Remissão ao CPC de 1973: ${c.remissaoCPC1973}.`) : null,
+    c.observacao ? el('p', { class: 'pequeno' }, el('strong', {}, 'Observação: '), c.observacao) : null,
+    !habil ? el('div', { class: 'pendente' }, el('span', { class: 'selo revisar' }, 'Revisar aplicabilidade com o juízo'),
+      ' Inciso desabilitado até existir modelo validado pelo juízo. A ferramenta não decide se o inciso ainda se aplica.') : null,
+  );
+  $('#etiqueta-sugerida').textContent = sugerirEtiqueta(c.inciso);
+}
+
+// ---------- Coluna 2: processos ----------
+
+function reconhecerProcessos() {
+  const texto = $('#txt-processos').value;
+  const numeros = extrairNumerosCNJ(texto);
+  const linhasSemNumero = texto.split(/\r?\n/).filter((l) => l.trim() && !extrairNumerosCNJ(l).length).length;
+  if (!numeros.length) { avisar('Nenhum número de processo reconhecido.', 'erro'); return; }
+  const existentes = new Map(estadoAtos.processos.map((p) => [p.numero, p]));
+  let novos = 0, repetidos = 0;
+  for (const n of numeros) {
+    if (existentes.has(n)) { repetidos++; continue; }
+    const p = { numero: n, lido: false };
+    estadoAtos.processos.push(p);
+    existentes.set(n, p);
+    novos++;
+  }
+  const av = limpar($('#avisos-processos'));
+  const msgs = [`${novos} processo(s) incluído(s), todos como "não lido".`];
+  if (repetidos) msgs.push(`${repetidos} repetido(s) ignorado(s).`);
+  if (linhasSemNumero) msgs.push(`${linhasSemNumero} linha(s) sem número de processo ignorada(s).`);
+  av.append(el('div', { class: 'info pequeno' }, msgs.join(' ')));
+  renderizarProcessos();
+  renderizarPreviaEGerar();
+}
+
+function renderizarProcessos() {
+  const corpo = limpar($('#processos-corpo'));
+  if (!estadoAtos.processos.length) {
+    corpo.append(el('tr', {}, el('td', { colspan: 3, class: 'vazio' }, 'Nenhum processo. Cole a relação dos processos etiquetados.')));
+  }
+  estadoAtos.processos.forEach((p, i) => {
+    const chk = el('input', { type: 'checkbox', checked: p.lido === true, 'aria-label': `Lido individualmente: ${p.numero}` });
+    chk.addEventListener('change', () => { p.lido = chk.checked; renderizarProcessos(); renderizarPreviaEGerar(); });
+    corpo.append(el('tr', { class: p.lido ? '' : 'nao-lido' },
+      el('td', { class: 'num' }, p.numero),
+      el('td', {}, el('label', {}, chk, 'Lido'), el('div', {}, p.lido ? el('span', { class: 'selo ok' }, 'Entra no lote') : el('span', { class: 'selo alerta' }, AVISO_NAO_LIDO))),
+      el('td', {}, el('button', { type: 'button', class: 'discreto', onclick: () => { estadoAtos.processos.splice(i, 1); renderizarProcessos(); renderizarPreviaEGerar(); } }, 'Tirar'))));
+  });
+  const lidos = processosLidos(estadoAtos.processos).length;
+  $('#contagem-lidos').textContent = `${lidos} lido(s) de ${estadoAtos.processos.length}. Só os lidos entram no lote.`;
+}
+
+// ---------- Coluna 3: modelo e texto ----------
+
+function renderizarSeletorModelo() {
+  const sel = limpar($('#sel-modelo'));
+  const lista = modelosDoInciso();
+  if (!lista.length) sel.append(el('option', { value: '' }, '(nenhum modelo para este inciso)'));
+  for (const m of lista) sel.append(el('option', { value: m.id }, `${m.titulo || 'Sem título'} · v${m.versao} · ${STATUS_MODELO[modeloValidado(m) ? 'validado_pelo_juizo' : 'rascunho']}`));
+  if (!lista.some((m) => m.id === estadoAtos.modeloId)) estadoAtos.modeloId = lista[0]?.id || '';
+  sel.value = estadoAtos.modeloId;
+}
+
+function iniciarEdicao() {
+  const m = modeloAtual();
+  estadoAtos.edicao = m ? { titulo: m.titulo, texto: m.texto, prazo: m.prazo } : null;
+}
+
+function renderizarEditor() {
+  const alvo = limpar($('#editor-modelo'));
+  const m = modeloAtual();
+  if (!m) {
+    alvo.append(el('p', { class: 'muted' }, 'Nenhum modelo para este inciso. Clique em "Novo modelo" ou importe modelos validados.'));
+    return;
+  }
+  if (!estadoAtos.edicao) iniciarEdicao();
+  const e = estadoAtos.edicao;
+  const validado = modeloValidado(m);
+  const titulo = el('input', { type: 'text', value: e.titulo, id: 'mod-titulo' });
+  const texto = el('textarea', { class: 'modelo', id: 'mod-texto', spellcheck: 'true' }, e.texto);
+  const prazo = el('input', { type: 'text', value: e.prazo, id: 'mod-prazo', placeholder: 'ex.: 15 (quinze) dias', size: 22 });
+  const marcar = () => {
+    e.titulo = titulo.value; e.texto = texto.value; e.prazo = prazo.value;
+    $('#mod-pendente').hidden = !edicaoPendente();
+    $('#bt-salvar-modelo').disabled = !edicaoPendente();
+    $('#bt-validar').disabled = edicaoPendente() || problemasDoModelo(m).length > 0;
+  };
+  [titulo, texto, prazo].forEach((c) => c.addEventListener('input', marcar));
+  const problemas = problemasDoModelo(m);
+  const habil = incisoHabilitado(buscarInciso(m.inciso), estadoAtos.modelos);
+
+  anexar(alvo,
+    el('div', { class: 'linha', style: 'margin:.3rem 0' },
+      el('span', { class: `selo ${validado ? 'ok' : 'alerta'}` }, STATUS_MODELO[validado ? 'validado_pelo_juizo' : 'rascunho']),
+      el('span', { class: 'pequeno muted' }, `versão ${m.versao}`),
+      validado ? el('span', { class: 'pequeno muted' }, `validado por ${m.validadoPor} em ${formatarDataBR(m.validadoEm)}`) : null),
+    !habil ? el('div', { class: 'pendente' }, 'Inciso marcado para revisão de aplicabilidade: o modelo só habilita o inciso depois de validado pelo juízo.') : null,
+    el('label', { class: 'campo' }, el('span', {}, 'Título do modelo'), titulo),
+    el('label', { class: 'campo' }, el('span', {}, 'Texto do ato (sem o fecho, que é inserido automaticamente)'), texto),
+    el('p', { class: 'pequeno muted' }, 'Variáveis permitidas: {{numero}}, {{prazo}}, {{data}}, {{servidor}}. Não use dado de parte no modelo.'),
+    el('label', { class: 'campo' }, el('span', {}, 'Prazo ({{prazo}}), preenchido na validação'), prazo),
+    el('p', { class: 'pequeno muted' }, 'O provimento remete ao CPC de 1973. A ferramenta não converte prazos: o juízo informa o prazo ao validar.'),
+    el('p', { id: 'mod-pendente', class: 'pequeno', style: 'color:var(--vermelho)', hidden: !edicaoPendente() }, 'Alterações não salvas. A prévia mostra a versão salva.'),
+    problemas.length ? el('div', { class: 'alerta-caixa pequeno' }, el('strong', {}, 'Pendências do modelo:'), ...problemas.map((p) => el('div', {}, p))) : null,
+    el('div', { class: 'linha' },
+      el('button', { type: 'button', id: 'bt-salvar-modelo', class: 'primario', disabled: !edicaoPendente(), onclick: salvarModelo }, 'Salvar alterações'),
+      el('button', { type: 'button', class: 'discreto', onclick: () => { iniciarEdicao(); renderizarEditor(); } }, 'Descartar alterações'),
+      el('button', { type: 'button', class: 'perigo', onclick: excluirModelo }, 'Excluir modelo')),
+    el('fieldset', {}, el('legend', {}, 'Validação pelo juízo'),
+      el('div', { class: 'linha', style: 'align-items:flex-end' },
+        el('label', { class: 'campo' }, el('span', {}, 'Validado por'), el('input', { type: 'text', id: 'mod-validador', size: 26, placeholder: 'magistrado ou servidor designado' })),
+        el('button', { type: 'button', id: 'bt-validar', disabled: edicaoPendente() || problemas.length > 0, onclick: registrarValidacao }, 'Registrar validação pelo juízo')),
+      el('p', { class: 'pequeno muted' }, 'Qualquer alteração posterior no texto, no título ou no prazo volta o modelo para rascunho.')),
+  );
+}
+
+function salvarModelo() {
+  const m = modeloAtual();
+  if (!m || !edicaoPendente()) return;
+  if (modeloValidado(m) && !confirm('Este modelo está validado pelo juízo. Salvar a alteração volta o modelo para rascunho e exige nova validação. Continuar?')) return;
+  const novo = editarModelo(m, estadoAtos.edicao);
+  estadoAtos.modelos = estadoAtos.modelos.map((x) => (x.id === m.id ? novo : x));
+  iniciarEdicao();
+  renderizarTudoAtos();
+  avisar(`Modelo salvo (versão ${novo.versao}, rascunho).`, 'ok');
+}
+
+function registrarValidacao() {
+  const m = modeloAtual();
+  if (!m) return;
+  const r = validarModelo(m, { por: $('#mod-validador').value, em: agoraISO() });
+  if (!r.ok) { avisar(r.erros.join(' '), 'erro'); return; }
+  estadoAtos.modelos = estadoAtos.modelos.map((x) => (x.id === m.id ? r.modelo : x));
+  iniciarEdicao();
+  renderizarTudoAtos();
+  avisar('Validação registrada.', 'ok');
+}
+
+function novoModelo() {
+  const c = buscarInciso(estadoAtos.inciso);
+  const m = criarModelo({ inciso: c.inciso, titulo: `${c.rotulo} (modelo)`, texto: 'ATO ORDINATÓRIO. ' });
+  estadoAtos.modelos.push(m);
+  estadoAtos.modeloId = m.id;
+  iniciarEdicao();
+  renderizarTudoAtos();
+  $('#mod-texto')?.focus();
+}
+
+function excluirModelo() {
+  const m = modeloAtual();
+  if (!m || !confirm(`Excluir o modelo "${m.titulo || m.id}" desta sessão?`)) return;
+  estadoAtos.modelos = estadoAtos.modelos.filter((x) => x.id !== m.id);
+  estadoAtos.modeloId = '';
+  estadoAtos.edicao = null;
+  renderizarTudoAtos();
+}
+
+function renderizarPreviaEGerar() {
+  const m = modeloAtual();
+  const caixa = limpar($('#previa-ato'));
+  const primeiro = processosLidos(estadoAtos.processos)[0];
+  if (!m) {
+    caixa.className = 'texto-ato';
+    caixa.append(el('span', { class: 'muted' }, 'Sem modelo para prévia.'));
+  } else {
+    const pv = gerarPrevia(m, { numero: primeiro?.numero, data: formatarDataBR(agoraISO(), { hora: false }), servidor: estadoAtos.servidor });
+    caixa.className = 'texto-ato' + (pv.tarja ? ' rascunho' : '');
+    if (pv.tarja) caixa.append(el('span', { class: 'tarja' }, TARJA_RASCUNHO));
+    caixa.append(pv.texto);
+  }
+  const imp = impedimentosDoLote({ modelo: m, processos: estadoAtos.processos, servidor: estadoAtos.servidor, modelos: estadoAtos.modelos });
+  const n = processosLidos(estadoAtos.processos).length;
+  const bt = $('#bt-gerar');
+  bt.disabled = imp.length > 0;
+  bt.textContent = `Gerar ${n} ato${n === 1 ? '' : 's'} do lote`;
+  const alvo = limpar($('#impedimentos'));
+  if (imp.length) alvo.append(el('div', { class: 'pequeno', style: 'color:var(--vermelho)' }, ...imp.map((i) => el('div', {}, i))));
+}
+
+function gerar() {
+  const r = gerarLote({ modelo: modeloAtual(), processos: estadoAtos.processos, servidor: estadoAtos.servidor, dataHora: agoraISO(), modelos: estadoAtos.modelos });
+  if (!r.ok) { avisar(r.impedimentos.join(' '), 'erro'); return; }
+  estadoAtos.ultimoLote = r;
+  estadoAtos.auditoria.push(r.registro);
+  renderizarSaida();
+  renderizarAuditoria();
+  $('#cartao-saida').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  avisar(`${r.atos.length} ato(s) gerado(s).`, 'ok');
+}
+
+function renderizarSaida() {
+  const lote = estadoAtos.ultimoLote;
+  $('#cartao-saida').hidden = !lote;
+  if (!lote) return;
+  const r = lote.registro;
+  $('#saida-resumo').textContent = `${lote.atos.length} ato(s) · inciso ${r.inciso} · modelo "${r.modeloTitulo}" versão ${r.versaoModelo} · servidor ${r.servidor} · ${formatarDataBR(r.dataHora)}`
+    + (lote.excluidos.length ? ` · ${lote.excluidos.length} processo(s) não lido(s) ficaram fora do lote.` : '.');
+  const unico = limpar($('#saida-unico'));
+  if (lote.textoUnico) {
+    unico.append(
+      el('p', { class: 'pequeno' }, 'O texto é idêntico para todos os processos do lote: use-o na operação em lote do PJe, pela etiqueta ', el('strong', {}, lote.etiqueta), '.'),
+      el('div', { class: 'texto-ato', id: 'texto-unico' }, lote.textoUnico),
+      el('div', { class: 'linha', style: 'margin-top:.4rem' }, el('button', { type: 'button', class: 'primario', onclick: async () => avisar(await copiarTexto(lote.textoUnico) ? 'Texto copiado.' : 'Não foi possível copiar.', 'ok') }, 'Copiar o texto único do lote')));
+  } else {
+    unico.append(el('div', { class: 'info' }, 'O modelo usa {{numero}}: o texto muda de processo para processo. Copie por processo (abaixo) ou baixe o .txt.'));
+  }
+  const lista = limpar($('#saida-por-processo'));
+  for (const a of lote.atos) {
+    lista.append(el('div', { class: 'ato-item' },
+      el('div', { class: 'linha' }, el('strong', { class: 'num' }, a.numero),
+        el('button', { type: 'button', class: 'discreto', onclick: async () => avisar(await copiarTexto(a.texto) ? `Texto de ${a.numero} copiado.` : 'Não foi possível copiar.', 'ok') }, 'Copiar')),
+      el('div', { class: 'texto-ato' }, a.texto)));
+  }
+}
+
+function renderizarAuditoria() {
+  const corpo = limpar($('#auditoria-corpo'));
+  if (!estadoAtos.auditoria.length) {
+    corpo.append(el('tr', {}, el('td', { colspan: 7, class: 'vazio' }, 'Nenhum lote gerado nesta sessão.')));
+    return;
+  }
+  for (const r of estadoAtos.auditoria.slice().reverse()) {
+    corpo.append(el('tr', {},
+      el('td', {}, formatarDataBR(r.dataHora)), el('td', {}, r.servidor), el('td', {}, r.inciso),
+      el('td', {}, r.modeloTitulo || r.modeloId), el('td', {}, String(r.versaoModelo)), el('td', {}, r.validadoPor || ''),
+      el('td', { class: 'num pequeno' }, r.processos.join(', '))));
+  }
+}
+
+// ---------- Sessão ----------
+
+function sessaoAtosAtual() {
+  return {
+    tipo: 'sessao-atos-lote',
+    versaoFormato: 1,
+    ferramenta: 'Gerador de Atos Ordinatórios em Lote v1',
+    salvoEm: agoraISO(),
+    aviso: 'Arquivo de trabalho da vara. Contém números de processo: não compartilhe fora da unidade.',
+    servidor: estadoAtos.servidor,
+    inciso: estadoAtos.inciso,
+    processos: estadoAtos.processos,
+    modelos: estadoAtos.modelos,
+    auditoria: estadoAtos.auditoria,
+  };
+}
+
+function abrirSessaoAtos(dados) {
+  if (!dados || dados.tipo !== 'sessao-atos-lote') throw new Error('Arquivo não é uma sessão do Gerador de Atos em Lote.');
+  const imp = importarModelos(JSON.stringify({ modelos: dados.modelos || [] }));
+  estadoAtos.modelos = imp.modelos;
+  estadoAtos.processos = (Array.isArray(dados.processos) ? dados.processos : [])
+    .filter((p) => p && extrairNumerosCNJ(p.numero).length).map((p) => ({ numero: extrairNumerosCNJ(p.numero)[0], lido: p.lido === true }));
+  estadoAtos.auditoria = Array.isArray(dados.auditoria) ? dados.auditoria.filter((r) => r && Array.isArray(r.processos)) : [];
+  estadoAtos.servidor = String(dados.servidor || '');
+  estadoAtos.inciso = buscarInciso(dados.inciso) ? dados.inciso : 'XV';
+  estadoAtos.modeloId = '';
+  estadoAtos.edicao = null;
+  estadoAtos.ultimoLote = null;
+  $('#servidor').value = estadoAtos.servidor;
+  return imp.avisos;
+}
+
+async function abrirArquivoJSON(acao) {
+  const arq = await escolherArquivo('.json,application/json');
+  if (!arq) return;
+  try {
+    const avisos = acao(JSON.parse(await lerArquivoTexto(arq))) || [];
+    renderizarTudoAtos();
+    renderizarSaida();
+    avisar(avisos.length ? avisos.join(' ') : 'Arquivo aberto.', avisos.length ? 'erro' : 'ok');
+  } catch (e) {
+    avisar('Não foi possível abrir: ' + e.message, 'erro');
+  }
+}
+
+// ---------- Ligações ----------
+
+function ligarEventosAtos() {
+  ligarFechamentoDialogos();
+  ligarTamanhoFonte('bt-fonte-menos', 'bt-fonte-mais');
+  $('#lembrete-berna').textContent = LEMBRETE_BERNA;
+  $('#aviso-ocr').textContent = '[PENDENTE] ' + CONFERENCIA_CATALOGO.aviso;
+  const ol = limpar($('#lista-vedacoes'));
+  VEDACOES_PROV_006_2006.forEach((v) => ol.append(el('li', {}, v)));
+
+  $('#lista-incisos').addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-inciso]');
+    if (!b) return;
+    if (edicaoPendente() && !confirm('Há alterações não salvas no modelo. Trocar de inciso e descartá-las?')) return;
+    estadoAtos.inciso = b.dataset.inciso;
+    estadoAtos.modeloId = '';
+    estadoAtos.edicao = null;
+    prefGravar('atos-inciso', estadoAtos.inciso);
+    renderizarTudoAtos();
+  });
+  $('#sel-modelo').addEventListener('change', (ev) => {
+    if (edicaoPendente() && !confirm('Há alterações não salvas no modelo. Trocar e descartá-las?')) { ev.target.value = estadoAtos.modeloId; return; }
+    estadoAtos.modeloId = ev.target.value;
+    estadoAtos.edicao = null;
+    renderizarEditor();
+    renderizarPreviaEGerar();
+  });
+  $('#bt-novo-modelo').addEventListener('click', novoModelo);
+  $('#servidor').addEventListener('input', (ev) => { estadoAtos.servidor = ev.target.value.trim(); renderizarPreviaEGerar(); });
+  $('#bt-reconhecer-processos').addEventListener('click', reconhecerProcessos);
+  $('#bt-exemplo-processos').addEventListener('click', () => { $('#txt-processos').value = EXEMPLO_LOTE; avisar('Exemplo com dados fictícios carregado. Clique em "Reconhecer números".'); });
+  $('#bt-limpar-processos').addEventListener('click', () => {
+    if (estadoAtos.processos.length && !confirm('Esvaziar a relação de processos?')) return;
+    estadoAtos.processos = [];
+    $('#txt-processos').value = '';
+    limpar($('#avisos-processos'));
+    renderizarProcessos();
+    renderizarPreviaEGerar();
+  });
+  $('#bt-copiar-etiqueta').addEventListener('click', async () => avisar(await copiarTexto($('#etiqueta-sugerida').textContent) ? 'Nome da etiqueta copiado.' : 'Não foi possível copiar.', 'ok'));
+  $('#bt-gerar').addEventListener('click', gerar);
+  $('#bt-baixar-txt').addEventListener('click', () => {
+    const l = estadoAtos.ultimoLote;
+    if (l) baixarArquivo(`lote_inciso-${l.registro.inciso}_${carimboArquivo()}.txt`, textoArquivoLote(l));
+  });
+  $('#bt-baixar-relacao').addEventListener('click', () => {
+    const l = estadoAtos.ultimoLote;
+    if (l) baixarArquivo(`relacao-lote_inciso-${l.registro.inciso}_${carimboArquivo()}.csv`, csvRelacaoLote(l), 'text/csv;charset=utf-8');
+  });
+  $('#bt-csv-auditoria').addEventListener('click', () => baixarArquivo(`auditoria-atos-lote_${carimboArquivo()}.csv`, csvAuditoria(estadoAtos.auditoria), 'text/csv;charset=utf-8'));
+  $('#bt-exportar-modelos').addEventListener('click', () => baixarArquivo(`modelos-atos-ordinatorios_${carimboArquivo()}.json`, exportarModelos(estadoAtos.modelos, agoraISO()), 'application/json'));
+  $('#bt-importar-modelos').addEventListener('click', () => abrirArquivoJSON((dados) => {
+    const imp = importarModelos(JSON.stringify(dados));
+    const ids = new Set(imp.modelos.map((m) => m.id));
+    estadoAtos.modelos = [...estadoAtos.modelos.filter((m) => !ids.has(m.id)), ...imp.modelos];
+    estadoAtos.edicao = null;
+    return [`${imp.modelos.length} modelo(s) importado(s).`, ...imp.avisos].filter((x, i) => i > 0 || imp.avisos.length);
+  }));
+  $('#bt-sobre').addEventListener('click', () => abrirDialogo('dlg-sobre'));
+  $('#bt-salvar-sessao').addEventListener('click', () => {
+    baixarArquivo(`sessao-atos-lote_${carimboArquivo()}.json`, JSON.stringify(sessaoAtosAtual(), null, 2), 'application/json');
+    avisar('Sessão salva no arquivo baixado. Guarde-o na pasta da vara.', 'ok');
+  });
+  $('#bt-abrir-sessao').addEventListener('click', () => {
+    if ((estadoAtos.processos.length || estadoAtos.auditoria.length) && !confirm('Abrir outra sessão substitui os dados atuais. Continuar?')) return;
+    abrirArquivoJSON(abrirSessaoAtos);
+  });
+  window.addEventListener('beforeunload', (ev) => {
+    if (estadoAtos.processos.length || estadoAtos.auditoria.length) { ev.preventDefault(); ev.returnValue = ''; }
+  });
+
+  const incisoSalvo = prefLer('atos-inciso', 'XV');
+  if (buscarInciso(incisoSalvo)) estadoAtos.inciso = incisoSalvo;
+  renderizarTudoAtos();
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ligarEventosAtos);
+  else ligarEventosAtos();
+}
+
+})();</script>
+</body>
+</html>

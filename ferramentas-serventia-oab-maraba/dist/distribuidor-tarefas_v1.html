@@ -1,0 +1,2220 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<title>Distribuidor de Tarefas</title>
+<style>/* Identidade OAB/PA Subseção Marabá: navy #001333, azul #0095D9, vermelho #D1232D só para alerta. */
+:root {
+  --navy: #001333;
+  --azul: #0095D9;
+  --azul-escuro: #006FA3;
+  --vermelho: #D1232D;
+  --fundo-1: #E0F2FB;
+  --fundo-2: #EBF6FD;
+  --zebra: #F2F2F2;
+  --borda: #C9D6E2;
+  --texto: #1B1B1B;
+  --texto-2: #4A5563;
+  --ok: #1E6B3A;
+  --fonte: Arial, Helvetica, sans-serif;
+  --fonte-ato: "Times New Roman", Times, serif;
+  --fonte-num: Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #FFFFFF; color: var(--texto); }
+body { font-family: var(--fonte); font-size: 0.875rem; line-height: 1.45; }
+h1, h2, h3 { color: var(--navy); margin: 0; line-height: 1.25; }
+h2 { font-size: 1rem; }
+h3 { font-size: 0.9rem; }
+p { margin: 0.4rem 0; }
+a { color: var(--azul-escuro); }
+.num { font-family: var(--fonte-num); white-space: nowrap; }
+.muted { color: var(--texto-2); }
+.pequeno { font-size: 0.8rem; }
+[hidden] { display: none !important; }
+
+/* Topo */
+.topo { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.25rem; border-bottom: 3px double var(--navy); background: #FFFFFF; flex-wrap: wrap; }
+.topo img { height: 46px; width: auto; }
+.topo-titulos { flex: 1 1 260px; min-width: 0; }
+.topo-inst { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--azul-escuro); font-weight: bold; }
+.topo-inst .vermelho { color: var(--vermelho); }
+.topo h1 { font-size: 1.25rem; }
+.topo-sub { font-size: 0.78rem; color: var(--texto-2); }
+.topo-acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+
+/* Botões e campos */
+button, .botao { font: inherit; font-size: 0.82rem; border: 1px solid var(--azul-escuro); background: #FFFFFF; color: var(--azul-escuro); padding: 0.35rem 0.7rem; border-radius: 3px; cursor: pointer; line-height: 1.3; }
+button:hover:not(:disabled) { background: var(--fundo-2); }
+button.primario { background: var(--azul-escuro); color: #FFFFFF; }
+button.primario:hover:not(:disabled) { background: var(--navy); }
+button.discreto { border-color: var(--borda); color: var(--texto-2); }
+button.perigo { border-color: var(--vermelho); color: var(--vermelho); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--azul); outline-offset: 1px; }
+input[type=text], input[type=number], input[type=date], input[type=time], select, textarea { font: inherit; font-size: 0.85rem; border: 1px solid var(--borda); border-radius: 3px; padding: 0.3rem 0.45rem; background: #FFFFFF; color: var(--texto); max-width: 100%; }
+textarea { width: 100%; resize: vertical; }
+textarea.cola { min-height: 9rem; font-family: var(--fonte-num); font-size: 0.78rem; }
+label { display: inline-flex; gap: 0.35rem; align-items: center; }
+.campo { display: flex; flex-direction: column; align-items: stretch; gap: 0.2rem; margin: 0.35rem 0; }
+.campo > span { font-size: 0.78rem; font-weight: bold; color: var(--navy); }
+.linha { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.linha.fim { justify-content: flex-end; }
+
+/* Abas */
+.abas { display: flex; gap: 0; border-bottom: 2px solid var(--navy); flex-wrap: wrap; }
+.abas button { border: 1px solid transparent; border-bottom: none; border-radius: 3px 3px 0 0; background: transparent; color: var(--navy); padding: 0.45rem 0.9rem; font-weight: bold; margin-bottom: -2px; }
+.abas button[aria-selected=true] { background: var(--navy); color: #FFFFFF; }
+.abas.secundarias { border-bottom-width: 1px; border-bottom-color: var(--borda); }
+.abas.secundarias button { font-weight: normal; padding: 0.35rem 0.7rem; margin-bottom: -1px; }
+.abas.secundarias button[aria-selected=true] { background: var(--fundo-1); color: var(--navy); border-color: var(--borda); font-weight: bold; }
+.abas .contagem { display: inline-block; min-width: 1.4rem; padding: 0 0.3rem; margin-left: 0.3rem; border-radius: 9px; background: rgba(0, 149, 217, 0.15); font-size: 0.75rem; text-align: center; }
+.modulos { padding: 0.6rem 1.25rem 0; }
+
+main { padding: 0.75rem 1.25rem 1rem; }
+
+/* Cartões */
+.cartao { border: 1px solid var(--borda); border-radius: 4px; padding: 0.75rem 0.9rem; background: #FFFFFF; margin-bottom: 0.9rem; min-width: 0; }
+.cartao > h2 { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.badge-num { display: inline-flex; align-items: center; justify-content: center; width: 1.45rem; height: 1.45rem; border-radius: 3px; background: var(--navy); color: #FFFFFF; font-size: 0.8rem; }
+.grade { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 0.9rem; }
+.grade-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1.25fr); gap: 0.9rem; align-items: start; }
+@media (max-width: 1100px) { .grade-3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .grade-3 > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 820px) { .grade, .grade-3 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Caixas de destaque */
+.regra { margin: 0.6rem 1.25rem 0; padding: 0.5rem 0.8rem; background: var(--fundo-1); border-left: 4px solid var(--azul); font-size: 0.85rem; }
+.regra strong { color: var(--navy); }
+.info { background: var(--fundo-2); border-left: 4px solid var(--azul); padding: 0.45rem 0.7rem; margin: 0.5rem 0; font-size: 0.82rem; }
+.alerta-caixa { background: #FFFFFF; border: 2px solid var(--vermelho); border-radius: 4px; padding: 0.55rem 0.75rem; margin: 0.6rem 0; }
+.alerta-caixa h3 { color: var(--vermelho); margin-bottom: 0.3rem; }
+.alerta-caixa ol { margin: 0.2rem 0 0.2rem 1.2rem; padding: 0; }
+.pendente { background: #FFF8E5; border-left: 4px solid #B07A00; padding: 0.45rem 0.7rem; margin: 0.5rem 0; font-size: 0.8rem; }
+
+/* Contadores */
+.contadores { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem; margin-bottom: 0.9rem; }
+.contador { border: 1px solid var(--borda); border-top: 4px solid var(--navy); border-radius: 4px; padding: 0.45rem 0.7rem; background: #FFFFFF; }
+.contador .valor { font-size: 1.5rem; font-weight: bold; color: var(--navy); line-height: 1.1; }
+.contador .rotulo { font-size: 0.78rem; color: var(--texto-2); }
+.contador.urg { border-top-color: var(--navy); }
+.contador.pref { border-top-color: var(--azul); }
+.contador.ger { border-top-color: #7A8796; }
+.contador.alerta { border-top-color: var(--vermelho); }
+.contador.alerta .valor { color: var(--vermelho); }
+@media (max-width: 820px) { .contadores { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Tabelas */
+.tabela-rolagem { overflow-x: auto; border: 1px solid var(--borda); border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+th { background: var(--azul-escuro); color: #FFFFFF; text-align: left; font-weight: bold; padding: 0.4rem 0.5rem; white-space: nowrap; position: sticky; top: 0; }
+td { padding: 0.35rem 0.5rem; border-top: 1px solid #E3E8EE; vertical-align: top; }
+tbody tr:nth-child(even) { background: var(--zebra); }
+tbody tr.clicavel { cursor: pointer; }
+tbody tr.clicavel:hover { background: var(--fundo-2); }
+td.vazio { text-align: center; color: var(--texto-2); padding: 1rem; }
+td.dias { text-align: right; font-variant-numeric: tabular-nums; }
+.tabela-alta { max-height: 26rem; overflow-y: auto; }
+
+/* Selos */
+.selo { display: inline-block; font-size: 0.7rem; font-weight: bold; padding: 0.05rem 0.35rem; border-radius: 3px; border: 1px solid var(--borda); color: var(--texto-2); background: #FFFFFF; white-space: nowrap; margin: 0.05rem 0.15rem 0.05rem 0; }
+.selo.sigilo { border-color: var(--navy); color: var(--navy); }
+.selo.urg { background: var(--navy); color: #FFFFFF; border-color: var(--navy); }
+.selo.pref { background: var(--fundo-1); color: var(--navy); border-color: var(--azul); }
+.selo.alerta { border-color: var(--vermelho); color: var(--vermelho); }
+.selo.ok { border-color: var(--ok); color: var(--ok); }
+.selo.revisar { border-color: #B07A00; color: #8A5F00; background: #FFF8E5; }
+.alertas-celula { color: var(--vermelho); font-size: 0.78rem; }
+.alertas-celula div + div { margin-top: 0.1rem; }
+.sugestao { color: var(--azul-escuro); font-size: 0.78rem; }
+
+/* Diálogos */
+dialog { border: 1px solid var(--navy); border-radius: 4px; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); color: var(--texto); }
+dialog::backdrop { background: rgba(0, 19, 51, 0.45); }
+.dlg-topo { background: var(--navy); color: #FFFFFF; padding: 0.55rem 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.dlg-topo h2 { color: #FFFFFF; }
+.dlg-topo button { background: transparent; color: #FFFFFF; border-color: #FFFFFF; }
+.dlg-corpo { padding: 0.75rem 0.9rem; overflow-y: auto; max-height: calc(100vh - 170px); }
+.dlg-rodape { padding: 0.55rem 0.9rem; border-top: 1px solid var(--borda); display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+fieldset { border: 1px solid var(--borda); border-radius: 3px; margin: 0.5rem 0; padding: 0.45rem 0.7rem; }
+legend { font-weight: bold; color: var(--navy); font-size: 0.82rem; padding: 0 0.3rem; }
+
+/* Texto de ato */
+.texto-ato { font-family: var(--fonte-ato); font-size: 1rem; line-height: 1.5; text-align: justify; white-space: pre-wrap; border: 1px solid var(--borda); padding: 0.75rem 0.9rem; background: #FFFFFF; position: relative; min-height: 6rem; }
+.texto-ato.rascunho { background: repeating-linear-gradient(-45deg, #FFFFFF, #FFFFFF 14px, #FDF1F1 14px, #FDF1F1 28px); }
+.tarja { display: block; text-align: center; font-family: var(--fonte); font-weight: bold; font-size: 0.85rem; color: #FFFFFF; background: var(--vermelho); padding: 0.25rem; margin: -0.75rem -0.9rem 0.6rem; letter-spacing: 0.04em; }
+.literal { font-family: var(--fonte-ato); font-size: 0.95rem; text-align: justify; background: var(--fundo-2); padding: 0.5rem 0.65rem; border-left: 3px solid var(--azul); }
+textarea.modelo { font-family: var(--fonte-ato); font-size: 0.95rem; min-height: 7rem; }
+
+/* Rodapé */
+.rodape-fixo { position: sticky; bottom: 0; background: var(--navy); color: #FFFFFF; font-size: 0.76rem; padding: 0.4rem 1.25rem; z-index: 5; }
+.nota-lista { font-size: 0.76rem; color: var(--texto-2); margin-top: 0.45rem; }
+
+.aviso-flutuante { position: fixed; right: 1rem; bottom: 2.6rem; max-width: min(420px, calc(100vw - 32px)); background: var(--navy); color: #FFFFFF; padding: 0.55rem 0.8rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); z-index: 30; font-size: 0.85rem; }
+.aviso-flutuante.erro { background: var(--vermelho); }
+.aviso-flutuante.ok { background: var(--ok); }
+
+#area-impressao { display: none; }
+
+@media (max-width: 640px) {
+  .topo, main, .modulos { padding-left: 16px; padding-right: 16px; }
+  .regra { margin-left: 16px; margin-right: 16px; }
+  .rodape-fixo { padding-left: 16px; padding-right: 16px; }
+}
+
+@media print {
+  body { padding: 0; font-size: 10pt; }
+  .rodape-fixo, .topo-acoes, .nao-imprimir, dialog, .aviso-flutuante { display: none !important; }
+  body.imprimindo > *:not(#area-impressao) { display: none !important; }
+  body.imprimindo #area-impressao { display: block; }
+  th { position: static; background: #FFFFFF !important; color: #000000; border-bottom: 2px solid #000000; }
+  tbody tr:nth-child(even) { background: #FFFFFF; }
+  td { border-top: 1px solid #999999; }
+  .impressao-cab { border-bottom: 2px solid #000000; margin-bottom: 0.4cm; padding-bottom: 0.2cm; }
+  .impressao-cab h1 { font-size: 13pt; color: #000000; }
+  .impressao-rodape { margin-top: 0.4cm; font-size: 8pt; border-top: 1px solid #000000; padding-top: 0.15cm; }
+  @page { margin: 1.5cm 1.2cm; }
+}
+</style>
+</head>
+<body>
+<header class="topo">
+  <img src="data:image/png;base64,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" alt="OAB Pará">
+  <div class="topo-titulos">
+    <div class="topo-inst">OAB/PA · Subseção <span class="vermelho">Marabá</span></div>
+    <h1>Distribuidor de Tarefas da Serventia</h1>
+    <div class="topo-sub">Protótipo v1 · funciona no computador da vara, sem rede e sem envio de dados</div>
+  </div>
+  <nav class="topo-acoes" aria-label="Ações gerais">
+    <button type="button" id="bt-abrir-sessao">Abrir sessão</button>
+    <button type="button" id="bt-salvar-sessao">Salvar sessão</button>
+    <button type="button" id="bt-config">Configurações</button>
+    <button type="button" id="bt-sobre">Sobre</button>
+    <button type="button" id="bt-fonte-menos" class="discreto" title="Diminuir letra" aria-label="Diminuir letra">A-</button>
+    <button type="button" id="bt-fonte-mais" class="discreto" title="Aumentar letra" aria-label="Aumentar letra">A+</button>
+  </nav>
+</header>
+
+<div class="modulos">
+  <div class="abas" role="tablist" aria-label="Módulo">
+    <button type="button" role="tab" id="aba-mod-secretaria" data-modulo="secretaria" aria-selected="true">Secretaria: atos ordinatórios</button>
+    <button type="button" role="tab" id="aba-mod-gabinete" data-modulo="gabinete" aria-selected="false">Gabinete: minutas</button>
+  </div>
+</div>
+
+<section class="regra" aria-label="Regra de ordenação"><strong>Regra de ordenação:</strong> <span id="texto-regra"></span></section>
+
+<main>
+  <div class="grade">
+    <section class="cartao" id="cartao-entrada" aria-labelledby="tit-entrada">
+      <h2 id="tit-entrada"><span class="badge-num">1</span> Entrada de dados</h2>
+      <div class="abas secundarias" role="tablist" aria-label="Forma de entrada">
+        <button type="button" role="tab" data-entrada="texto" aria-selected="true">Colar texto</button>
+        <button type="button" role="tab" data-entrada="tabela" aria-selected="false">Tabela ou CSV</button>
+        <button type="button" role="tab" data-entrada="manual" aria-selected="false">Inclusão manual</button>
+      </div>
+
+      <div id="entrada-texto" class="painel-entrada">
+        <p class="muted pequeno">Cole a relação copiada do painel de tarefas do PJe. A ferramenta reconhece o número CNJ, as datas, a tarefa, as etiquetas e marcas de prioridade (como sugestão).</p>
+        <textarea id="txt-colar" class="cola" spellcheck="false" placeholder="Cole aqui a relação copiada do painel de tarefas do PJe"></textarea>
+        <div class="linha" style="margin-top:.4rem">
+          <button type="button" class="primario" id="bt-reconhecer">Reconhecer</button>
+          <button type="button" class="discreto" id="bt-exemplo">Carregar exemplo fictício</button>
+          <button type="button" class="discreto" id="bt-limpar-colar">Limpar</button>
+        </div>
+      </div>
+
+      <div id="entrada-tabela" class="painel-entrada" hidden>
+        <p class="muted pequeno">Cole uma tabela (copiada de planilha) ou importe um CSV. Depois diga qual coluna é cada informação. O mapeamento pode ser salvo como perfil.</p>
+        <textarea id="txt-tabela" class="cola" spellcheck="false" placeholder="Cole aqui a tabela (colunas separadas por tabulação, ponto e vírgula ou vírgula)"></textarea>
+        <div class="linha" style="margin-top:.4rem">
+          <button type="button" id="bt-ler-tabela" class="primario">Ler tabela</button>
+          <button type="button" id="bt-importar-csv">Importar CSV</button>
+          <button type="button" class="discreto" id="bt-exemplo-tabela">Carregar exemplo fictício</button>
+        </div>
+        <div id="mapeamento" hidden>
+          <h3 style="margin-top:.6rem">Mapeamento de colunas</h3>
+          <label class="pequeno"><input type="checkbox" id="chk-cabecalho" checked> A primeira linha é cabeçalho</label>
+          <div id="mapa-campos" class="linha" style="align-items:flex-start"></div>
+          <div class="linha">
+            <button type="button" class="primario" id="bt-aplicar-mapa">Aplicar mapeamento</button>
+            <button type="button" id="bt-salvar-perfil-mapa">Salvar perfil de mapeamento</button>
+            <button type="button" id="bt-abrir-perfil-mapa">Abrir perfil de mapeamento</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="entrada-manual" class="painel-entrada" hidden>
+        <div class="linha" style="align-items:flex-end">
+          <label class="campo"><span>Número do processo</span><input type="text" id="man-numero" class="num" placeholder="0000000-00.0000.8.14.0028" size="27"></label>
+          <label class="campo"><span>Data de entrada</span><input type="date" id="man-data"></label>
+          <label class="campo"><span>Hora</span><input type="time" id="man-hora"></label>
+        </div>
+        <div class="linha" style="align-items:flex-end">
+          <label class="campo" style="flex:1 1 220px"><span>Tarefa</span><input type="text" id="man-tarefa"></label>
+          <label class="campo" style="flex:1 1 220px"><span>Providência</span><input type="text" id="man-providencia" placeholder="ex.: Prazo decorrido: remeter à conclusão"></label>
+        </div>
+        <div class="linha">
+          <label><input type="checkbox" id="man-sigiloso"> Sigiloso</label>
+          <button type="button" class="primario" id="bt-incluir-manual">Incluir processo</button>
+        </div>
+      </div>
+
+      <div id="previa" hidden>
+        <h3 style="margin-top:.8rem">Prévia: confira antes de aceitar</h3>
+        <div id="previa-resumo" class="info"></div>
+        <div id="previa-avisos"></div>
+        <div class="linha" style="align-items:flex-end">
+          <label class="campo"><span>Tarefa para os itens sem tarefa reconhecida</span><input type="text" id="previa-tarefa-padrao" size="30"></label>
+          <label class="campo" id="previa-prazo-campo"><span>Prazo do art. 228</span>
+            <select id="previa-tipo-prazo">
+              <option value="ato_5dias">Execução de ato (5 dias)</option>
+              <option value="conclusao_1dia">Remessa à conclusão (1 dia)</option>
+              <option value="nenhum">Sem prazo do art. 228</option>
+            </select>
+          </label>
+          <label class="campo" id="previa-minuta-campo" hidden><span>Tipo de minuta</span>
+            <select id="previa-tipo-minuta">
+              <option value="pela_tarefa">Pelo nome da tarefa (despacho se não reconhecer)</option>
+              <option value="despacho">Despacho</option>
+              <option value="decisao">Decisão</option>
+              <option value="sentenca">Sentença</option>
+            </select>
+          </label>
+        </div>
+        <div class="tabela-rolagem tabela-alta">
+          <table>
+            <thead><tr><th>Incluir</th><th>Processo</th><th>Data de entrada</th><th>Tarefa</th><th>Etiquetas</th><th>Sugestões</th><th>Situação</th></tr></thead>
+            <tbody id="previa-corpo"></tbody>
+          </table>
+        </div>
+        <div class="linha fim" style="margin-top:.5rem">
+          <button type="button" class="discreto" id="bt-descartar-previa">Descartar</button>
+          <button type="button" class="primario" id="bt-aceitar-previa">Aceitar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="cartao" id="cartao-servidores" aria-labelledby="tit-servidores">
+      <h2 id="tit-servidores"><span class="badge-num">2</span> Servidores e distribuição</h2>
+      <p class="muted pequeno">Nome curto (por exemplo, "Servidor A") e fator de carga: 100% padrão, 50% para meio expediente.</p>
+      <div class="tabela-rolagem">
+        <table>
+          <thead><tr><th>Servidor</th><th>Fator</th><th>Na fila</th><th></th></tr></thead>
+          <tbody id="servidores-corpo"></tbody>
+        </table>
+      </div>
+      <div class="linha" style="margin-top:.5rem">
+        <input type="text" id="novo-servidor" placeholder="Servidor A" size="14" aria-label="Nome do servidor">
+        <input type="number" id="novo-fator" value="100" min="10" max="100" step="5" style="width:5rem" aria-label="Fator de carga em %">
+        <button type="button" id="bt-add-servidor">Adicionar</button>
+      </div>
+      <div class="linha" style="margin-top:.6rem">
+        <button type="button" class="primario" id="bt-distribuir">Distribuir a carga</button>
+      </div>
+      <p id="resumo-distribuicao" class="info" hidden></p>
+      <p class="muted pequeno">Algoritmo: percorre as três listas na ordem e entrega cada processo ao servidor com a menor carga ponderada (atribuídos ÷ fator); empate pela ordem alfabética. Responsável fixado é mantido e entra na contagem.</p>
+    </section>
+  </div>
+
+  <section class="contadores" aria-label="Contadores" id="contadores"></section>
+
+  <section class="cartao" id="cartao-listas" aria-labelledby="tit-listas">
+    <h2 id="tit-listas"><span class="badge-num">3</span> Filas ordenadas</h2>
+    <div class="abas secundarias" role="tablist" aria-label="Listas" id="abas-listas">
+      <button type="button" role="tab" data-lista="urgencia" aria-selected="true">Urgência reconhecida pelo juiz <span class="contagem" data-cont="urgencia">0</span></button>
+      <button type="button" role="tab" data-lista="preferencia" aria-selected="false">Preferências legais <span class="contagem" data-cont="preferencia">0</span></button>
+      <button type="button" role="tab" data-lista="geral" aria-selected="false">Lista geral <span class="contagem" data-cont="geral">0</span></button>
+      <button type="button" role="tab" data-lista="todas" aria-selected="false">Todas em sequência</button>
+      <button type="button" role="tab" data-lista="servidor" aria-selected="false">Fila por servidor</button>
+    </div>
+    <div class="linha" style="margin:.5rem 0" id="barra-servidor" hidden>
+      <label>Servidor: <select id="sel-servidor-fila"></select></label>
+    </div>
+    <div class="tabela-rolagem tabela-alta">
+      <table>
+        <thead><tr><th>Ordem</th><th>Processo</th><th>Providência</th><th>Na fila desde</th><th id="th-dias">Dias</th><th>Lista</th><th>Responsável</th><th>Alerta</th></tr></thead>
+        <tbody id="lista-corpo"></tbody>
+      </table>
+    </div>
+    <div class="linha" style="margin-top:.5rem">
+      <button type="button" id="bt-imprimir-lista">Imprimir esta lista</button>
+      <button type="button" id="bt-csv-lista">Exportar CSV desta lista</button>
+      <button type="button" id="bt-csv-completo">Exportar CSV completo</button>
+      <span style="flex:1"></span>
+      <button type="button" class="perigo" id="bt-limpar-modulo">Esvaziar o módulo</button>
+    </div>
+    <p class="nota-lista" id="nota-lista"></p>
+    <p class="nota-lista">Clique em um processo para editar: urgência (só com referência do pronunciamento do juiz), preferências, ordem definida pelo juiz, sigilo e responsável. Números de processos sigilosos saem mascarados no CSV e na impressão.</p>
+  </section>
+</main>
+
+<footer class="rodape-fixo" id="rodape"></footer>
+
+<dialog id="dlg-processo" aria-labelledby="dlg-processo-tit">
+  <div class="dlg-topo"><h2 id="dlg-processo-tit">Processo</h2><button type="button" data-fechar="dlg-processo">Fechar</button></div>
+  <div class="dlg-corpo" id="dlg-processo-corpo"></div>
+  <div class="dlg-rodape">
+    <button type="button" class="perigo" id="bt-remover-processo">Remover da fila</button>
+    <span style="flex:1"></span>
+    <button type="button" class="discreto" data-fechar="dlg-processo">Cancelar</button>
+    <button type="button" class="primario" id="bt-salvar-processo">Salvar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-config" aria-labelledby="dlg-config-tit">
+  <div class="dlg-topo"><h2 id="dlg-config-tit">Configurações</h2><button type="button" data-fechar="dlg-config">Fechar</button></div>
+  <div class="dlg-corpo">
+    <fieldset>
+      <legend>Contagem dos prazos do art. 228 do CPC</legend>
+      <label><input type="radio" name="modo-contagem" value="uteis"> Dias úteis</label>
+      <label style="margin-left:1rem"><input type="radio" name="modo-contagem" value="corridos"> Dias corridos</label>
+      <div class="pendente"><strong>[PENDENTE]</strong> A forma de contagem é decisão do juízo. Padrão provisório: dias úteis. Em dias úteis, sábados, domingos, feriados e suspensões cadastrados não contam. Em dias corridos, só as suspensões cadastradas são descontadas.</div>
+      <label class="campo"><span>Data de referência da contagem</span><input type="date" id="cfg-referencia"></label>
+      <p class="muted pequeno">Deixe em branco para usar a data de hoje.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Feriados (um por linha, dd/mm/aaaa)</legend>
+      <textarea id="cfg-feriados" rows="5" spellcheck="false"></textarea>
+      <div class="linha"><button type="button" class="discreto" id="bt-feriados-nacionais">Inserir feriados nacionais de 2026</button></div>
+      <p class="muted pequeno">A lista inserida traz só os feriados nacionais fixados em lei federal. Feriados forenses, estaduais e municipais e pontos facultativos devem ser conferidos com o calendário do TJPA e incluídos pela vara.</p>
+    </fieldset>
+    <fieldset>
+      <legend>Suspensões (uma por linha, dd/mm/aaaa a dd/mm/aaaa)</legend>
+      <textarea id="cfg-suspensoes" rows="3" spellcheck="false"></textarea>
+    </fieldset>
+    <fieldset>
+      <legend>Marco inicial</legend>
+      <p id="cfg-marco"></p>
+      <div class="pendente"><strong>[PENDENTE]</strong> Confirmar com a Direção de Secretaria qual data o painel do PJe mostra.</div>
+    </fieldset>
+    <fieldset>
+      <legend>Perfil da vara</legend>
+      <p class="muted pequeno">O perfil guarda a forma de contagem, os feriados, as suspensões e o mapeamento de colunas. Não guarda processos.</p>
+      <div class="linha"><button type="button" id="bt-salvar-perfil">Salvar perfil (.json)</button><button type="button" id="bt-abrir-perfil">Abrir perfil</button></div>
+    </fieldset>
+    <div id="cfg-erros"></div>
+  </div>
+  <div class="dlg-rodape">
+    <button type="button" class="discreto" data-fechar="dlg-config">Cancelar</button>
+    <button type="button" class="primario" id="bt-aplicar-config">Aplicar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-sobre" aria-labelledby="dlg-sobre-tit">
+  <div class="dlg-topo"><h2 id="dlg-sobre-tit">Sobre o Distribuidor de Tarefas</h2><button type="button" data-fechar="dlg-sobre">Fechar</button></div>
+  <div class="dlg-corpo">
+    <h3>O que faz e o que não faz</h3>
+    <p>Organiza as filas da secretaria (atos ordinatórios) e do gabinete (minutas) na ordem que o CPC indica: urgência reconhecida pelo juiz, preferências legais e lista geral, cada uma por antiguidade.</p>
+    <p>Sinaliza os processos que passaram dos prazos do servidor (art. 228 do CPC) e as preferências concorrentes, e distribui a carga de forma equilibrada entre os servidores.</p>
+    <p>Não acessa o PJe, não pratica atos, não reconhece urgência e não decide a ordem entre preferências concorrentes.</p>
+    <h3 style="margin-top:.8rem">Base normativa</h3>
+    <p>O art. 12 do CPC determina que juízes e tribunais atendam, preferencialmente, à ordem cronológica de conclusão para proferir sentença ou acórdão, excluídas, entre outras, as preferências legais e as metas do CNJ (§ 2º, VII) e a causa que exija urgência no julgamento, assim reconhecida por decisão fundamentada (§ 2º, IX). O art. 153 dirige ao escrivão ou chefe de secretaria a mesma ordem preferencial, pela ordem cronológica de recebimento para publicação e efetivação dos pronunciamentos, excluídos os atos urgentes, assim reconhecidos pelo juiz no pronunciamento a ser efetivado (§ 2º, I), e as preferências legais (§ 2º, II), que formam lista própria com ordem cronológica entre si (§ 3º).</p>
+    <p>O art. 228 fixa ao serventuário o prazo de 1 dia para remeter os autos conclusos e de 5 dias para executar os atos processuais, contados da conclusão do ato anterior imposto por lei ou da ciência da ordem do juiz, com certificação do dia e da hora da ciência (§ 1º). O art. 1.048 assegura prioridade à parte ou interessado com 60 anos ou mais ou portador de doença grave, aos procedimentos do ECA, à vítima de violência doméstica e familiar e às causas sobre normas gerais de licitação e contratação, independentemente de deferimento, à vista da prova da condição (§ 4º). O art. 203, § 4º, dispensa de despacho os atos meramente ordinatórios, revistos pelo juiz quando necessário.</p>
+    <p>No Pedido de Providências 0005150-49.2024.2.00.0000 (24/02/2026), o CNJ assentou que, havendo preferências legais concorrentes, a ordem entre elas é definida pelo magistrado no caso concreto, sem pesos sistêmicos. Por isso a ferramenta não atribui peso a nenhuma preferência: apenas sinaliza a concorrência para decisão do juiz.</p>
+    <h3 style="margin-top:.8rem">Limites</h3>
+    <ul>
+      <li>Não altera o PJe, não pratica atos e não decide nada.</li>
+      <li>A ordem proposta é um guia, porque a lei fala em atendimento preferencial.</li>
+      <li>A urgência é reconhecida pelo juiz.</li>
+      <li>O Provimento nº 006/2006 remete ao CPC de 1973 e os modelos de ato (Ferramenta II) são validados pelo juízo.</li>
+      <li>A data considerada é a de entrada na tarefa do PJe, usada como aproximação do marco do art. 228 do CPC.</li>
+    </ul>
+    <p class="muted" style="margin-top:.8rem">Protótipo desenvolvido pela OAB/PA Subseção Marabá. Versão v1, novembro de 2026.</p>
+  </div>
+</dialog>
+
+<div id="area-impressao"></div>
+<script>(function () {
+'use strict';
+const EXEMPLO_SECRETARIA = "Painel de tarefas [Secretaria]: relação copiada em 25/11/2026 (dados fictícios)\n0000001-01.2026.8.14.0028\tPrazo decorrido: remeter à conclusão\t18/11/2026 13:35\tEtiquetas: AGUARDANDO\n0000002-01.2026.8.14.0028\tIntimar exequente sobre prosseguimento\t10/11/2026 09:12:40\n0000003-01.2026.8.14.0028 | Expedir intimação | 03/11/2026 | Prioridade: Idoso\n0000004-01.2026.8.14.0028\tPrazo decorrido: remeter à conclusão\t\n0000005-01.2026.8.14.0028\tAnalisar petição\t24/11/2026 às 16:05\t[CONFERIR]\n0000002-01.2026.8.14.0028\tIntimar exequente sobre prosseguimento\t12/11/2026 10:00\n0000006-01.2026.8.14.0028\n  Tarefa: Cumprimento de sentença: intimar executado\n  Entrada na tarefa: 05/11/2026 08:00\n  Prioridade: Violência doméstica (Lei 11.340)\n0000007-01.2026.8.14.0028\tExpedir mandado\t01/11/2026\tSegredo de justiça\n0000008-01.2026.8.14.0028\tPrazo decorrido\t21/11/2026 11:11\n";
+
+const EXEMPLO_GABINETE = "Processo\tTarefa\tNa tarefa desde\tEtiquetas\tPrioridade\n0000101-01.2026.8.14.0028\tMinutar sentença\t02/10/2026 10:00\tCONCLUSOS SENTENÇA\t\n0000102-01.2026.8.14.0028\tMinutar despacho: intimar executado para pagar ou impugnar\t15/11/2026 14:20\t\tIdoso\n0000103-01.2026.8.14.0028\tMinutar decisão\t20/11/2026 09:00\tLIMINAR\t\n0000104-01.2026.8.14.0028\tMinutar sentença\t28/09/2026 16:45\t\tDoença grave\n0000105-01.2026.8.14.0028\tMinutar despacho\t22/11/2026 08:30\t\t\n0000106-01.2026.8.14.0028\tMinutar sentença\t15/11/2026 10:10\t\tECA\n";
+
+// ---- src/comum/datas.js ----
+// Datas sem fuso horário. Toda data circula como texto local "AAAA-MM-DDTHH:MM:SS".
+// A contagem de dias usa apenas a parte da data, convertida para um número serial (dias desde 1970-01-01).
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function dataValida(a, m, d) {
+  if (!(a >= 1900 && a <= 2200 && m >= 1 && m <= 12 && d >= 1 && d <= 31)) return false;
+  const dt = new Date(Date.UTC(a, m - 1, d));
+  return dt.getUTCFullYear() === a && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+function montarISO(a, m, d, h = 0, mi = 0, s = 0) {
+  return `${a}-${pad2(m)}-${pad2(d)}T${pad2(h)}:${pad2(mi)}:${pad2(s)}`;
+}
+
+function horaValida(h, mi, s) {
+  return h >= 0 && h <= 23 && mi >= 0 && mi <= 59 && s >= 0 && s <= 59;
+}
+
+// dd/mm/aaaa com hora opcional (hh:mm ou hh:mm:ss), separada por espaço, vírgula, "às" ou hífen.
+const RE_DATA_BR = /(?<!\d)(\d{2})\/(\d{2})\/(\d{4})(?:\s*(?:,|às|as|-)?\s*(\d{2}):(\d{2})(?::(\d{2}))?)?(?!\d)/g;
+
+function extrairDatas(texto) {
+  const out = [];
+  const s = String(texto ?? '');
+  for (const m of s.matchAll(RE_DATA_BR)) {
+    const d = +m[1], mes = +m[2], a = +m[3];
+    if (!dataValida(a, mes, d)) continue;
+    let h = 0, mi = 0, se = 0;
+    if (m[4] !== undefined) {
+      h = +m[4]; mi = +m[5]; se = m[6] !== undefined ? +m[6] : 0;
+      if (!horaValida(h, mi, se)) { h = 0; mi = 0; se = 0; }
+    }
+    out.push({ iso: montarISO(a, mes, d, h, mi, se), texto: m[0], indice: m.index });
+  }
+  return out;
+}
+
+// Aceita "dd/mm/aaaa[ hh:mm[:ss]]" ou "aaaa-mm-dd[(T| )hh:mm[:ss]]". Devolve ISO local ou null.
+function lerData(texto) {
+  const s = String(texto ?? '').trim();
+  if (!s) return null;
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (iso) {
+    const a = +iso[1], m = +iso[2], d = +iso[3];
+    if (!dataValida(a, m, d)) return null;
+    const h = iso[4] ? +iso[4] : 0, mi = iso[5] ? +iso[5] : 0, se = iso[6] ? +iso[6] : 0;
+    if (!horaValida(h, mi, se)) return null;
+    return montarISO(a, m, d, h, mi, se);
+  }
+  const br = extrairDatas(s);
+  return br.length ? br[0].iso : null;
+}
+
+function partesISO(iso) {
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (!m) return null;
+  return { a: +m[1], m: +m[2], d: +m[3], h: m[4] ? +m[4] : 0, mi: m[5] ? +m[5] : 0, s: m[6] ? +m[6] : 0 };
+}
+
+function diaSerial(iso) {
+  const p = partesISO(iso);
+  if (!p) return null;
+  return Math.round(Date.UTC(p.a, p.m - 1, p.d) / 86400000);
+}
+
+function serialParaDia(serial) {
+  const dt = new Date(serial * 86400000);
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth() + 1)}-${pad2(dt.getUTCDate())}`;
+}
+
+// 0 = domingo ... 6 = sábado
+function diaDaSemana(serial) {
+  return new Date(serial * 86400000).getUTCDay();
+}
+
+function formatarDataBR(iso, { hora = true } = {}) {
+  const p = partesISO(iso);
+  if (!p) return '';
+  const data = `${pad2(p.d)}/${pad2(p.m)}/${p.a}`;
+  if (!hora || (p.h === 0 && p.mi === 0 && p.s === 0)) return data;
+  return `${data} ${pad2(p.h)}:${pad2(p.mi)}`;
+}
+
+function agoraISO(dt = new Date()) {
+  return montarISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate(), dt.getHours(), dt.getMinutes(), dt.getSeconds());
+}
+
+function hojeISO(dt = new Date()) {
+  return montarISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+}
+
+
+// ---- src/comum/prazos.js ----
+
+// Prazos do serventuário (CPC, art. 228): 1 dia para remeter os autos conclusos e 5 dias para executar os atos.
+// A forma de contagem (dias úteis ou corridos) é decisão do juízo. [PENDENTE] Padrão provisório: dias úteis.
+
+const LIMITES_228 = Object.freeze({
+  conclusao_1dia: 1,
+  ato_5dias: 5,
+  nenhum: null,
+});
+
+const ROTULOS_228 = Object.freeze({
+  conclusao_1dia: 'Remessa à conclusão (1 dia)',
+  ato_5dias: 'Execução de ato (5 dias)',
+  nenhum: 'Sem prazo do art. 228',
+});
+
+const CONTAGEM_PADRAO = Object.freeze({
+  modo: 'uteis',
+  feriados: [],      // ["2026-11-20", ...]
+  suspensoes: [],    // [{ inicio: "2026-12-20", fim: "2027-01-20" }, ...]
+});
+
+function prepararContagem(config = {}) {
+  const modo = config.modo === 'corridos' ? 'corridos' : 'uteis';
+  const feriados = new Set();
+  for (const f of config.feriados || []) {
+    const s = diaSerial(f);
+    if (s !== null) feriados.add(s);
+  }
+  const suspensoes = [];
+  for (const p of config.suspensoes || []) {
+    const i = diaSerial(p.inicio), f = diaSerial(p.fim);
+    if (i !== null && f !== null) suspensoes.push([Math.min(i, f), Math.max(i, f)]);
+  }
+  return { modo, feriados, suspensoes };
+}
+
+function suspenso(serial, cfg) {
+  return cfg.suspensoes.some(([i, f]) => serial >= i && serial <= f);
+}
+
+// Conta os dias a partir do dia seguinte ao da entrada até o dia de referência, inclusive.
+// Dias úteis: exclui sábados, domingos, feriados cadastrados e períodos de suspensão.
+// Dias corridos: conta todos os dias, exceto os períodos de suspensão cadastrados.
+function diasDecorridos(entradaIso, referenciaIso, config = CONTAGEM_PADRAO) {
+  const ini = diaSerial(entradaIso);
+  const fim = diaSerial(referenciaIso);
+  if (ini === null || fim === null) return null;
+  if (fim <= ini) return 0;
+  const cfg = config && config.feriados instanceof Set ? config : prepararContagem(config);
+  let n = 0;
+  for (let s = ini + 1; s <= fim; s++) {
+    if (suspenso(s, cfg)) continue;
+    if (cfg.modo === 'uteis') {
+      const wd = diaDaSemana(s);
+      if (wd === 0 || wd === 6) continue;
+      if (cfg.feriados.has(s)) continue;
+    }
+    n++;
+  }
+  return n;
+}
+
+// Avalia o processo contra o prazo do art. 228. É alerta de gestão: não calcula nem sugere sanção.
+function avaliarPrazo228(processo, referenciaIso, config = CONTAGEM_PADRAO) {
+  const dias = processo.dataEntrada ? diasDecorridos(processo.dataEntrada, referenciaIso, config) : null;
+  const limite = LIMITES_228[processo.tipoPrazo228] ?? null;
+  const vencido = limite !== null && dias !== null && dias > limite;
+  let alerta = null;
+  if (vencido) alerta = limite === 1 ? 'Prazo de 1 dia vencido' : `Prazo de ${limite} dias vencido`;
+  return { dias, limite, vencido, alerta };
+}
+
+// Lê a lista de feriados digitada (uma data por linha, dd/mm/aaaa). Texto após a data é ignorado.
+function lerFeriados(texto) {
+  const feriados = [], erros = [];
+  String(texto || '').split(/\r?\n/).forEach((linha, i) => {
+    const t = linha.trim();
+    if (!t) return;
+    const iso = lerData(t.split(/\s+/)[0]);
+    if (iso) feriados.push(iso.slice(0, 10));
+    else erros.push(`Linha ${i + 1}: data não reconhecida (${t})`);
+  });
+  return { feriados: [...new Set(feriados)].sort(), erros };
+}
+
+// Uma suspensão por linha: "dd/mm/aaaa a dd/mm/aaaa" (ou uma única data).
+function lerSuspensoes(texto) {
+  const suspensoes = [], erros = [];
+  String(texto || '').split(/\r?\n/).forEach((linha, i) => {
+    const t = linha.trim();
+    if (!t) return;
+    const datas = t.match(/\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}/g) || [];
+    const ini = datas[0] ? lerData(datas[0]) : null;
+    const fim = datas[1] ? lerData(datas[1]) : ini;
+    if (ini && fim) suspensoes.push({ inicio: ini.slice(0, 10), fim: fim.slice(0, 10) });
+    else erros.push(`Linha ${i + 1}: período não reconhecido (${t})`);
+  });
+  return { suspensoes, erros };
+}
+
+function feriadosParaTexto(feriados) {
+  return (feriados || []).map((f) => formatarDataBR(f, { hora: false })).join('\n');
+}
+
+function suspensoesParaTexto(suspensoes) {
+  return (suspensoes || [])
+    .map((s) => `${formatarDataBR(s.inicio, { hora: false })} a ${formatarDataBR(s.fim, { hora: false })}`)
+    .join('\n');
+}
+
+// Feriados nacionais fixados em lei federal para 2026 (Leis 662/1949, 6.802/1980 e 14.759/2023).
+// Não inclui feriados forenses, estaduais, municipais nem pontos facultativos: conferir com o calendário do TJPA.
+const FERIADOS_NACIONAIS_2026 = Object.freeze([
+  '2026-01-01', '2026-04-21', '2026-05-01', '2026-09-07', '2026-10-12',
+  '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25',
+]);
+
+
+
+// ---- src/comum/mascara.js ----
+// Máscara de processo sigiloso, no padrão já usado pela lista de ordem cronológica de julgamento do TJPA:
+// NNNNNNN-DD.AAAA.J.TR.OOOO  ->  Sigiloso-DD.AAAA.J.TR.OOOO
+
+const RE_CNJ_PARTES = /^(\d{7})-(\d{2})\.(\d{4})\.(\d)\.(\d{2})\.(\d{4})$/;
+
+function mascararNumero(numero) {
+  const m = String(numero || '').trim().match(RE_CNJ_PARTES);
+  if (!m) return 'Sigiloso';
+  return `Sigiloso-${m[2]}.${m[3]}.${m[4]}.${m[5]}.${m[6]}`;
+}
+
+// Número para exportação pública (CSV, impressão): mascara quando o processo é sigiloso.
+function numeroPublico(processo) {
+  return processo && processo.sigiloso ? mascararNumero(processo.numero) : String(processo?.numero || '');
+}
+
+
+// ---- src/comum/parser.js ----
+
+// Parser tolerante da relação copiada do painel de tarefas do PJe.
+// [PENDENTE] O formato exato da cópia do painel do TJPA não é conhecido: o parser trabalha por linha
+// e por bloco (uma linha com número CNJ abre um bloco; as linhas seguintes sem número pertencem a ele).
+// Tudo o que é inferido (prioridade, sigilo, tarefa) aparece como sugestão para o servidor confirmar.
+
+const RE_CNJ = /\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b/g;
+
+function normalizarBusca(s) {
+  return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+function extrairNumerosCNJ(texto) {
+  return [...String(texto ?? '').matchAll(RE_CNJ)].map((m) => m[0]);
+}
+
+// Palavras-chave de prioridade (CPC, art. 1.048). Servem só para SUGERIR; o servidor confirma.
+const PALAVRAS_PREFERENCIA = Object.freeze({
+  idoso: [/\bidos[oa]s?\b/, /\b60 anos\b/, /estatuto d[ao] (pessoa )?idos[oa]/, /\b10\.741\b/],
+  doenca_grave: [/doencas? graves?/],
+  eca: [/\beca\b/, /\bcrianca/, /\badolescente/, /infancia e (da )?juventude/, /\b8\.069\b/],
+  violencia_domestica: [/violencia domestica/, /maria da penha/, /\b11\.340\b/],
+  licitacao: [/\blicitac/, /\b14\.133\b/, /\b8\.666\b/, /contratac(ao|oes) publica/],
+});
+
+function sugerirPreferencias(texto) {
+  const t = normalizarBusca(texto);
+  return Object.keys(PALAVRAS_PREFERENCIA).filter((k) => PALAVRAS_PREFERENCIA[k].some((re) => re.test(t)));
+}
+
+function sugerirSigilo(texto) {
+  return /segredo de justica|\bsigilos[oa]s?\b|\bsigilo\b/.test(normalizarBusca(texto));
+}
+
+function extrairEtiquetas(texto) {
+  const s = String(texto ?? '');
+  const out = [];
+  for (const m of s.matchAll(/etiquetas?\s*:\s*([^\n|\t]+)/gi)) {
+    m[1].split(/[,;]/).forEach((e) => out.push(e.trim()));
+  }
+  for (const m of s.matchAll(/\[([^\]\n]{2,60})\]/g)) out.push(m[1].trim());
+  return [...new Set(out.filter(Boolean))];
+}
+
+// Termos que costumam aparecer em nomes de tarefa do PJe. Um campo que contenha um deles é tratado
+// como "tarefa". Campos sem esses termos (por exemplo, classe e nome das partes) são ignorados de propósito.
+const TERMOS_TAREFA = Object.freeze([
+  'prazo decorrido', 'conclus', 'intima', 'expedi', 'minutar', 'minuta', 'despacho', 'decisao', 'sentenc',
+  'cumprimento', 'cumprir', 'analisar', 'aguardar', 'certific', 'juntad', 'juntar', 'publica', 'arquiv',
+  'triagem', 'citac', 'citar', 'remeter', 'encaminhar', 'elaborar', 'preparar', 'providencia', 'assinar',
+  'audiencia', 'oficio', 'mandado', 'precatoria', 'retorno', 'diligencia', 'calculo', 'alvara',
+]);
+
+const SEPARADORES_CAMPO = /\t|\s\|\s|\||;|\s{2,}/;
+
+function limparCampo(s) {
+  return s.replace(RE_CNJ, ' ').replace(/\d{2}\/\d{2}\/\d{4}(\s*(,|às|as|-)?\s*\d{2}:\d{2}(:\d{2})?)?/g, ' ')
+    .replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').replace(/^[\s:,.\-]+|[\s:,.\-]+$/g, '');
+}
+
+function rotulado(texto, rotulo) {
+  const re = new RegExp(`${rotulo}\\s*:\\s*([^\\n|\\t;]+)`, 'i');
+  const m = String(texto).match(re);
+  return m ? m[1].trim() : '';
+}
+
+function reconhecerTarefa(textoBloco) {
+  const explicita = rotulado(textoBloco, 'tarefa');
+  if (explicita) return limparCampo(explicita);
+  for (const linha of String(textoBloco).split('\n')) {
+    for (const campo of linha.split(SEPARADORES_CAMPO)) {
+      if (/^\s*etiquetas?\s*:/i.test(campo)) continue;
+      const c = limparCampo(campo);
+      if (c.length < 3) continue;
+      const n = normalizarBusca(c);
+      if (TERMOS_TAREFA.some((t) => n.includes(t))) return c.slice(0, 120);
+    }
+  }
+  return '';
+}
+
+function montarItem(numero, textoBloco, linhaOrigem) {
+  const datas = extrairDatas(textoBloco);
+  const datasEncontradas = [...new Set(datas.map((d) => d.iso))];
+  return {
+    numero,
+    dataEntrada: datasEncontradas[0] || null,
+    datasEncontradas,
+    tarefa: reconhecerTarefa(textoBloco),
+    providencia: rotulado(textoBloco, 'provid[eê]ncia'),
+    etiquetas: extrairEtiquetas(textoBloco),
+    sugestoesPreferencia: sugerirPreferencias(textoBloco),
+    sugestaoSigiloso: sugerirSigilo(textoBloco),
+    origem: textoBloco.trim().slice(0, 300),
+    linhaOrigem,
+  };
+}
+
+// Mantém a ocorrência mais antiga de cada número e avisa. Sem data conta como a mais recente.
+function deduplicar(itens) {
+  const porNumero = new Map();
+  const contagem = new Map();
+  for (const it of itens) {
+    contagem.set(it.numero, (contagem.get(it.numero) || 0) + 1);
+    const atual = porNumero.get(it.numero);
+    if (!atual) { porNumero.set(it.numero, it); continue; }
+    const a = atual.dataEntrada, b = it.dataEntrada;
+    if (b && (!a || b < a)) porNumero.set(it.numero, it);
+  }
+  const avisos = [];
+  for (const [numero, n] of contagem) {
+    if (n > 1) {
+      const mantido = porNumero.get(numero);
+      avisos.push({ numero, mensagem: `aparece ${n} vezes; mantida a ocorrência mais antiga`, dataMantida: mantido.dataEntrada });
+    }
+  }
+  // preserva a ordem da primeira aparição
+  const vistos = new Set();
+  const unicos = [];
+  for (const it of itens) {
+    if (vistos.has(it.numero)) continue;
+    vistos.add(it.numero);
+    unicos.push(porNumero.get(it.numero));
+  }
+  return { itens: unicos, avisos };
+}
+
+function resumir(itens, ignorados) {
+  const { itens: unicos, avisos } = deduplicar(itens);
+  const incompletos = [];
+  for (const it of unicos) {
+    if (!it.dataEntrada) incompletos.push({ tipo: 'sem_data', numero: it.numero, trecho: it.origem, linha: it.linhaOrigem });
+    if (it.datasEncontradas && it.datasEncontradas.length > 1) {
+      incompletos.push({ tipo: 'varias_datas', numero: it.numero, trecho: it.origem, linha: it.linhaOrigem });
+    }
+  }
+  for (const ig of ignorados) incompletos.push({ tipo: 'sem_numero', numero: null, trecho: ig.trecho, linha: ig.linha });
+  return { itens: unicos, incompletos, avisos };
+}
+
+// Caminho 1: texto livre colado do painel.
+function reconhecerTextoLivre(texto) {
+  const linhas = String(texto ?? '').replace(/\r\n?/g, '\n').split('\n');
+  const blocos = [];
+  const ignorados = [];
+  let atual = null;
+  linhas.forEach((linha, i) => {
+    const nums = [...linha.matchAll(RE_CNJ)];
+    if (!nums.length) {
+      if (atual) atual.linhas.push(linha);
+      else if (linha.trim()) ignorados.push({ linha: i + 1, trecho: linha.trim().slice(0, 200) });
+      return;
+    }
+    nums.forEach((m, k) => {
+      const ini = k === 0 ? 0 : m.index;
+      const fim = k + 1 < nums.length ? nums[k + 1].index : linha.length;
+      atual = { numero: m[0], linhas: [linha.slice(ini, fim)], linhaOrigem: i + 1 };
+      blocos.push(atual);
+    });
+  });
+  const itens = blocos.map((b) => montarItem(b.numero, b.linhas.join('\n'), b.linhaOrigem));
+  return resumir(itens, ignorados);
+}
+
+// Caminho 2: tabela colada (TSV) ou CSV.
+function detectarSeparador(texto) {
+  const primeira = String(texto ?? '').split(/\r?\n/).find((l) => l.trim()) || '';
+  const cont = { '\t': 0, ';': 0, ',': 0 };
+  let aspas = false;
+  for (const ch of primeira) {
+    if (ch === '"') aspas = !aspas;
+    else if (!aspas && ch in cont) cont[ch]++;
+  }
+  if (cont['\t'] > 0) return '\t';
+  return cont[';'] >= cont[','] && cont[';'] > 0 ? ';' : (cont[','] > 0 ? ',' : '\t');
+}
+
+function lerTabela(texto, separador) {
+  const s = String(texto ?? '').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const sep = separador || detectarSeparador(s);
+  const linhas = [];
+  let linha = [], campo = '', aspas = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (aspas) {
+      if (ch === '"') {
+        if (s[i + 1] === '"') { campo += '"'; i++; } else aspas = false;
+      } else campo += ch;
+      continue;
+    }
+    if (ch === '"' && campo === '') { aspas = true; continue; }
+    if (ch === sep) { linha.push(campo); campo = ''; continue; }
+    if (ch === '\n') { linha.push(campo); linhas.push(linha); linha = []; campo = ''; continue; }
+    campo += ch;
+  }
+  if (campo !== '' || linha.length) { linha.push(campo); linhas.push(linha); }
+  return { separador: sep, linhas: linhas.filter((l) => l.some((c) => c.trim() !== '')) };
+}
+
+const CAMPOS_MAPEAMENTO = Object.freeze([
+  { chave: 'numero', rotulo: 'Número do processo', obrigatorio: true },
+  { chave: 'dataEntrada', rotulo: 'Data de entrada na tarefa', obrigatorio: true },
+  { chave: 'tarefa', rotulo: 'Tarefa' },
+  { chave: 'providencia', rotulo: 'Providência' },
+  { chave: 'etiquetas', rotulo: 'Etiquetas' },
+  { chave: 'prioridade', rotulo: 'Prioridade' },
+]);
+
+// Sugere o mapeamento pelo nome das colunas do cabeçalho.
+function sugerirMapeamento(cabecalho) {
+  const mapa = {};
+  const testes = {
+    numero: /processo|numero|n[ºo°]/,
+    dataEntrada: /entrada|data|desde|recebid/,
+    tarefa: /tarefa/,
+    providencia: /providencia/,
+    etiquetas: /etiqueta/,
+    prioridade: /prioridade|preferencia/,
+  };
+  (cabecalho || []).forEach((col, idx) => {
+    const n = normalizarBusca(col);
+    for (const [chave, re] of Object.entries(testes)) {
+      if (mapa[chave] === undefined && re.test(n)) { mapa[chave] = idx; break; }
+    }
+  });
+  return mapa;
+}
+
+// Perfil de mapeamento: guarda o índice e o nome da coluna, para funcionar mesmo se as colunas mudarem de lugar.
+function criarPerfilMapeamento(mapa, cabecalho, temCabecalho) {
+  const colunas = {};
+  for (const [chave, idx] of Object.entries(mapa)) {
+    if (idx === null || idx === undefined || idx < 0) continue;
+    colunas[chave] = { indice: idx, nome: temCabecalho && cabecalho ? String(cabecalho[idx] ?? '') : '' };
+  }
+  return { tipo: 'perfil-mapeamento', versao: 1, temCabecalho: !!temCabecalho, colunas };
+}
+
+function aplicarPerfilMapeamento(perfil, cabecalho) {
+  const mapa = {};
+  const nomes = (cabecalho || []).map((c) => normalizarBusca(c).trim());
+  for (const [chave, col] of Object.entries(perfil?.colunas || {})) {
+    const porNome = col.nome ? nomes.indexOf(normalizarBusca(col.nome).trim()) : -1;
+    mapa[chave] = porNome >= 0 ? porNome : col.indice;
+  }
+  return mapa;
+}
+
+function aplicarMapeamento(linhas, mapa, { temCabecalho = true } = {}) {
+  const corpo = temCabecalho ? linhas.slice(1) : linhas;
+  const desloc = temCabecalho ? 2 : 1;
+  const cel = (l, chave) => {
+    const idx = mapa[chave];
+    return idx === undefined || idx === null || idx < 0 ? '' : String(l[idx] ?? '').trim();
+  };
+  const itens = [];
+  const ignorados = [];
+  corpo.forEach((l, i) => {
+    const numeros = extrairNumerosCNJ(cel(l, 'numero'));
+    if (!numeros.length) {
+      ignorados.push({ linha: i + desloc, trecho: l.join(' | ').slice(0, 200) });
+      return;
+    }
+    const data = lerData(cel(l, 'dataEntrada'));
+    const prioridade = cel(l, 'prioridade');
+    const etiquetas = cel(l, 'etiquetas').split(/[,;|]/).map((e) => e.trim()).filter(Boolean);
+    itens.push({
+      numero: numeros[0],
+      dataEntrada: data,
+      datasEncontradas: data ? [data] : [],
+      tarefa: cel(l, 'tarefa'),
+      providencia: cel(l, 'providencia'),
+      etiquetas,
+      sugestoesPreferencia: sugerirPreferencias(prioridade),
+      sugestaoSigiloso: sugerirSigilo(prioridade),
+      origem: l.join(' | ').slice(0, 300),
+      linhaOrigem: i + desloc,
+    });
+  });
+  return resumir(itens, ignorados);
+}
+
+
+// ---- src/comum/exporta.js ----
+// Exportações locais. Nada é enviado: os arquivos são gerados no navegador e baixados pelo próprio usuário.
+
+function celulaCSV(v, sep = ';') {
+  const s = v === null || v === undefined ? '' : String(v);
+  if (s.includes('"') || s.includes(sep) || /[\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+// CSV com ponto e vírgula e BOM, para abrir direto no Excel em português.
+function paraCSV(cabecalho, linhas, sep = ';') {
+  const out = [cabecalho, ...linhas].map((l) => l.map((c) => celulaCSV(c, sep)).join(sep));
+  return '﻿' + out.join('\r\n') + '\r\n';
+}
+
+function carimboArquivo(dt = new Date()) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}_${p(dt.getHours())}${p(dt.getMinutes())}`;
+}
+
+function baixarArquivo(nome, conteudo, tipo = 'text/plain;charset=utf-8') {
+  if (typeof document === 'undefined') return;
+  const blob = new Blob([conteudo], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function lerArquivoTexto(arquivo) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result || ''));
+    r.onerror = () => reject(r.error);
+    r.readAsText(arquivo, 'utf-8');
+  });
+}
+
+async function copiarTexto(texto) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(texto);
+      return true;
+    }
+  } catch (e) { /* cai no método alternativo */ }
+  const ta = document.createElement('textarea');
+  ta.value = texto;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  ta.remove();
+  return ok;
+}
+
+// Preferências de interface (nunca dados de processo). Sempre em try/catch.
+function prefLer(chave, padrao) {
+  try {
+    const v = window.localStorage.getItem('oab-maraba-serventia:' + chave);
+    return v === null ? padrao : JSON.parse(v);
+  } catch (e) {
+    return padrao;
+  }
+}
+
+function prefGravar(chave, valor) {
+  try {
+    window.localStorage.setItem('oab-maraba-serventia:' + chave, JSON.stringify(valor));
+  } catch (e) { /* sem armazenamento: segue sem lembrar a preferência */ }
+}
+
+function escaparHTML(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+
+// ---- src/comum/interface.js ----
+
+// Utilitários de interface compartilhados pelas duas ferramentas (somente navegador).
+
+function $(sel, raiz = document) {
+  return raiz.querySelector(sel);
+}
+
+function $$(sel, raiz = document) {
+  return [...raiz.querySelectorAll(sel)];
+}
+
+// Cria elemento: el('button', { class: 'x', onclick: fn }, 'texto', filho...)
+function el(tag, attrs = {}, ...filhos) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+    else if (k === 'class') e.className = v;
+    else if (k === 'dataset') Object.assign(e.dataset, v);
+    else if (k === 'value') e.value = v;
+    else if (k === 'checked') e.checked = !!v;
+    else if (v === true) e.setAttribute(k, '');
+    else e.setAttribute(k, String(v));
+  }
+  for (const f of filhos.flat()) {
+    if (f === null || f === undefined || f === false) continue;
+    e.append(f instanceof Node ? f : document.createTextNode(String(f)));
+  }
+  return e;
+}
+
+// Anexa filhos ignorando null, undefined e false (o append nativo escreveria "null").
+function anexar(no, ...filhos) {
+  for (const f of filhos.flat()) {
+    if (f === null || f === undefined || f === false) continue;
+    no.append(f instanceof Node ? f : document.createTextNode(String(f)));
+  }
+  return no;
+}
+
+function limpar(no) {
+  while (no.firstChild) no.removeChild(no.firstChild);
+  return no;
+}
+
+let temporizadorAviso = null;
+function avisar(mensagem, tipo = 'info') {
+  let caixa = document.getElementById('aviso-flutuante');
+  if (!caixa) {
+    caixa = el('div', { id: 'aviso-flutuante', role: 'status', 'aria-live': 'polite' });
+    document.body.append(caixa);
+  }
+  caixa.className = `aviso-flutuante ${tipo}`;
+  caixa.textContent = mensagem;
+  caixa.hidden = false;
+  clearTimeout(temporizadorAviso);
+  temporizadorAviso = setTimeout(() => { caixa.hidden = true; }, tipo === 'erro' ? 7000 : 3500);
+}
+
+function abrirDialogo(id) {
+  const d = document.getElementById(id);
+  if (d && typeof d.showModal === 'function') d.showModal();
+  else if (d) d.setAttribute('open', '');
+}
+
+function fecharDialogo(id) {
+  const d = document.getElementById(id);
+  if (d && typeof d.close === 'function') d.close();
+  else if (d) d.removeAttribute('open');
+}
+
+// Botões com data-fechar="id" fecham o diálogo correspondente.
+function ligarFechamentoDialogos() {
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-fechar]');
+    if (b) fecharDialogo(b.dataset.fechar);
+  });
+}
+
+// Tamanho da fonte: preferência de interface, guardada em localStorage (sem dados de processo).
+function ligarTamanhoFonte(idMenos, idMais) {
+  let escala = Number(prefLer('fonte', 100)) || 100;
+  const aplicar = () => { document.documentElement.style.fontSize = `${escala}%`; prefGravar('fonte', escala); };
+  aplicar();
+  document.getElementById(idMenos)?.addEventListener('click', () => { escala = Math.max(80, escala - 10); aplicar(); });
+  document.getElementById(idMais)?.addEventListener('click', () => { escala = Math.min(150, escala + 10); aplicar(); });
+}
+
+function escolherArquivo(aceitar = '.json') {
+  return new Promise((resolve) => {
+    const i = el('input', { type: 'file', accept: aceitar, hidden: true });
+    i.addEventListener('change', () => { resolve(i.files && i.files[0] ? i.files[0] : null); i.remove(); });
+    document.body.append(i);
+    i.click();
+  });
+}
+
+// Imprime apenas o conteúdo montado na área de impressão.
+function imprimirConteudo(no) {
+  const area = document.getElementById('area-impressao');
+  limpar(area).append(no);
+  document.body.classList.add('imprimindo');
+  const fim = () => { document.body.classList.remove('imprimindo'); window.removeEventListener('afterprint', fim); };
+  window.addEventListener('afterprint', fim);
+  window.print();
+  setTimeout(fim, 1000);
+}
+
+
+// ---- src/distribuidor/processo.js ----
+// Modelo de dados do processo na fila (seção 4.3 da instrução).
+
+const MODULOS = Object.freeze({
+  secretaria: { rotulo: 'Secretaria', tipoPrazoPadrao: 'ato_5dias' },
+  gabinete: { rotulo: 'Gabinete', tipoPrazoPadrao: 'nenhum' },
+});
+
+const TIPOS_MINUTA = Object.freeze({ despacho: 'Despacho', decisao: 'Decisão', sentenca: 'Sentença' });
+
+// Tipo de minuta lido do nome da tarefa (ex.: "Minutar sentença"). É rótulo de organização, exibido e editável.
+function tipoMinutaPelaTarefa(tarefa) {
+  const t = String(tarefa || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (t.includes('sentenc')) return 'sentenca';
+  if (t.includes('decis')) return 'decisao';
+  if (t.includes('despach')) return 'despacho';
+  return null;
+}
+
+function novoProcesso(dados = {}, modulo = 'secretaria') {
+  const mod = MODULOS[modulo] ? modulo : 'secretaria';
+  const p = {
+    numero: String(dados.numero || '').trim(),
+    sigiloso: !!dados.sigiloso,
+    modulo: mod,
+    tarefa: String(dados.tarefa || ''),
+    providencia: String(dados.providencia || dados.tarefa || ''),
+    tipoPrazo228: ['conclusao_1dia', 'ato_5dias', 'nenhum'].includes(dados.tipoPrazo228)
+      ? dados.tipoPrazo228 : MODULOS[mod].tipoPrazoPadrao,
+    dataEntrada: dados.dataEntrada || null,
+    urgenciaJuiz: {
+      reconhecida: !!(dados.urgenciaJuiz && dados.urgenciaJuiz.reconhecida),
+      referencia: String((dados.urgenciaJuiz && dados.urgenciaJuiz.referencia) || ''),
+    },
+    preferencias: Array.isArray(dados.preferencias) ? [...new Set(dados.preferencias)] : [],
+    preferenciaConfirmada: !!dados.preferenciaConfirmada,
+    sugestoesPreferencia: Array.isArray(dados.sugestoesPreferencia) ? [...dados.sugestoesPreferencia] : [],
+    sugestaoSigiloso: !!dados.sugestaoSigiloso,
+    ordemDefinidaPeloJuiz: Number.isInteger(dados.ordemDefinidaPeloJuiz) ? dados.ordemDefinidaPeloJuiz : null,
+    metaCNJ: mod === 'gabinete' ? !!dados.metaCNJ : false,
+    tipoMinuta: mod === 'gabinete' && TIPOS_MINUTA[dados.tipoMinuta] ? dados.tipoMinuta : (mod === 'gabinete' ? 'despacho' : null),
+    etiquetas: Array.isArray(dados.etiquetas) ? [...dados.etiquetas] : [],
+    responsavel: dados.responsavel || null,
+    responsavelFixado: !!dados.responsavelFixado,
+    observacao: String(dados.observacao || ''),
+  };
+  // Sugestões do parser não viram preferência sozinhas: ficam guardadas até a confirmação.
+  if (!p.preferencias.length && !p.preferenciaConfirmada && p.sugestoesPreferencia.length) {
+    p.preferencias = [...p.sugestoesPreferencia];
+  }
+  return p;
+}
+
+
+// ---- src/distribuidor/ordenacao.js ----
+// Regra de ordenação (seção 4.4 da instrução), implementada literalmente:
+//   1. Urgência reconhecida pelo juiz, por antiguidade (CPC, art. 153, § 2º, I; art. 12, § 2º, IX).
+//   2. Preferências legais: primeiro a ordem definida pelo juiz, se houver; os demais por antiguidade
+//      (CPC, art. 1.048; art. 153, § 2º, II; art. 12, § 2º, VII).
+//   3. Lista geral, por antiguidade.
+// Entre tipos de preferência NÃO há hierarquia: a ordem entre preferências concorrentes é definida pelo
+// magistrado no caso concreto (CNJ, PP 0005150-49.2024.2.00.0000). Por isso o código só compara datas
+// e a ordem fixada pelo juiz, e sinaliza a concorrência para decisão.
+
+const LISTAS = Object.freeze(['urgencia', 'preferencia', 'geral']);
+
+const ROTULOS_LISTA = Object.freeze({
+  urgencia: 'Urgência reconhecida pelo juiz',
+  preferencia: 'Preferências legais',
+  geral: 'Lista geral',
+});
+
+const ROTULOS_LISTA_CURTOS = Object.freeze({ urgencia: 'Urgência', preferencia: 'Preferência', geral: 'Geral' });
+
+const ROTULOS_PREFERENCIA = Object.freeze({
+  idoso: 'Idoso (60 anos ou mais)',
+  doenca_grave: 'Doença grave',
+  eca: 'ECA',
+  violencia_domestica: 'Violência doméstica',
+  licitacao: 'Licitação',
+  meta_cnj: 'Meta do CNJ',
+});
+
+const ALERTA_CONCORRENCIA = 'Preferências concorrentes: decisão do juiz';
+
+function rotuloPreferencia(chave) {
+  if (String(chave).startsWith('outra:')) return String(chave).slice(6).trim() || 'Outra';
+  return ROTULOS_PREFERENCIA[chave] || String(chave);
+}
+
+// Marcadores que levam o processo à lista 2. A meta do CNJ só existe no módulo Gabinete.
+function marcadoresPreferencia(p, modulo) {
+  const m = p.preferenciaConfirmada ? [...new Set(p.preferencias || [])].filter(Boolean) : [];
+  if (modulo === 'gabinete' && p.metaCNJ) m.push('meta_cnj');
+  return m;
+}
+
+function listaDoProcesso(p, modulo) {
+  if (p.urgenciaJuiz && p.urgenciaJuiz.reconhecida === true) return 'urgencia';
+  if (marcadoresPreferencia(p, modulo).length > 0) return 'preferencia';
+  return 'geral';
+}
+
+// Antiguidade: data de entrada crescente; sem data vai para o fim; empate mantém a ordem de inclusão.
+function compararAntiguidade(a, b) {
+  const da = a.dataEntrada || null, db = b.dataEntrada || null;
+  if (da === db) return 0;
+  if (!da) return 1;
+  if (!db) return -1;
+  return da < db ? -1 : 1;
+}
+
+function ordenarPorAntiguidade(lista) {
+  return lista.slice().sort(compararAntiguidade);
+}
+
+function temOrdemDoJuiz(p) {
+  return Number.isInteger(p.ordemDefinidaPeloJuiz);
+}
+
+function ordenarPreferencias(lista) {
+  const comOrdem = lista.filter(temOrdemDoJuiz)
+    .sort((a, b) => (a.ordemDefinidaPeloJuiz - b.ordemDefinidaPeloJuiz) || compararAntiguidade(a, b));
+  const demais = ordenarPorAntiguidade(lista.filter((p) => !temOrdemDoJuiz(p)));
+  return [...comOrdem, ...demais];
+}
+
+// Processos que precisam de decisão do juiz sobre a ordem entre preferências:
+//  a) processo com mais de uma preferência;
+//  b) empate de data (mesmo dia) entre processos com preferências diferentes.
+// Quem já tem ordem definida pelo juiz não recebe o alerta.
+function concorrentes(listaPreferencias, modulo) {
+  const marcados = new Set();
+  const semOrdem = listaPreferencias.filter((p) => !temOrdemDoJuiz(p));
+  const porDia = new Map();
+  for (const p of semOrdem) {
+    const marcas = marcadoresPreferencia(p, modulo);
+    if (marcas.length > 1) marcados.add(p);
+    if (!p.dataEntrada) continue;
+    const dia = p.dataEntrada.slice(0, 10);
+    if (!porDia.has(dia)) porDia.set(dia, []);
+    porDia.get(dia).push({ p, assinatura: marcas.slice().sort().join('|') });
+  }
+  for (const grupo of porDia.values()) {
+    if (grupo.length < 2) continue;
+    const assinaturas = new Set(grupo.map((g) => g.assinatura));
+    if (assinaturas.size > 1) grupo.forEach((g) => marcados.add(g.p));
+  }
+  return marcados;
+}
+
+// Separa e ordena as três listas. Devolve entradas com a posição em cada lista.
+function organizarFilas(processos, modulo) {
+  const separadas = { urgencia: [], preferencia: [], geral: [] };
+  for (const p of processos) separadas[listaDoProcesso(p, modulo)].push(p);
+  const ordenadas = {
+    urgencia: ordenarPorAntiguidade(separadas.urgencia),
+    preferencia: ordenarPreferencias(separadas.preferencia),
+    geral: ordenarPorAntiguidade(separadas.geral),
+  };
+  const conc = concorrentes(ordenadas.preferencia, modulo);
+  const resultado = { urgencia: [], preferencia: [], geral: [], sequencia: [] };
+  let seq = 0;
+  for (const lista of LISTAS) {
+    ordenadas[lista].forEach((p, i) => {
+      const entrada = {
+        processo: p,
+        lista,
+        ordem: i + 1,
+        posicao: ++seq,
+        marcadores: marcadoresPreferencia(p, modulo),
+        concorrente: lista === 'preferencia' && conc.has(p),
+      };
+      resultado[lista].push(entrada);
+      resultado.sequencia.push(entrada);
+    });
+  }
+  return resultado;
+}
+
+
+// ---- src/distribuidor/distribuicao.js ----
+// Distribuição da carga entre os servidores do módulo (seção 4.7 da instrução).
+// Percorre a sequência já ordenada (urgentes, preferências, geral) e entrega cada processo ao servidor
+// com a menor carga ponderada (atribuídos / fator). Empate: ordem alfabética do nome.
+// Processo com responsável fixado mantém o responsável e entra na contagem.
+
+const EPS = 1e-9;
+
+function normalizarServidores(servidores) {
+  const vistos = new Set();
+  const out = [];
+  for (const s of servidores || []) {
+    const nome = String(s.nome || '').trim();
+    if (!nome || vistos.has(nome)) continue;
+    let fator = Number(s.fator);
+    if (!Number.isFinite(fator) || fator <= 0) fator = 1;
+    vistos.add(nome);
+    out.push({ nome, fator });
+  }
+  return out;
+}
+
+function compararNomes(a, b) {
+  return a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }) || (a < b ? -1 : a > b ? 1 : 0);
+}
+
+// sequencia: processos na ordem das três listas. Devolve { atribuicoes: Map(numero -> nome), contagem, resumo, avisos }.
+function distribuir(sequencia, servidores) {
+  const ativos = normalizarServidores(servidores).sort((a, b) => compararNomes(a.nome, b.nome));
+  const avisos = [];
+  const atribuicoes = new Map();
+  const carga = new Map(ativos.map((s) => [s.nome, 0]));
+  if (!ativos.length) {
+    avisos.push('Cadastre ao menos um servidor para distribuir.');
+    return { atribuicoes, contagem: {}, resumo: '', avisos };
+  }
+  for (const p of sequencia) {
+    if (p.responsavelFixado && p.responsavel && carga.has(p.responsavel)) {
+      carga.set(p.responsavel, carga.get(p.responsavel) + 1);
+    }
+  }
+  for (const p of sequencia) {
+    if (p.responsavelFixado && p.responsavel) {
+      atribuicoes.set(p.numero, p.responsavel);
+      if (!carga.has(p.responsavel)) avisos.push(`${p.numero}: responsável fixado (${p.responsavel}) não está no cadastro.`);
+      continue;
+    }
+    let escolhido = ativos[0];
+    let menor = carga.get(escolhido.nome) / escolhido.fator;
+    for (let i = 1; i < ativos.length; i++) {
+      const s = ativos[i];
+      const c = carga.get(s.nome) / s.fator;
+      if (c < menor - EPS) { escolhido = s; menor = c; }
+    }
+    atribuicoes.set(p.numero, escolhido.nome);
+    carga.set(escolhido.nome, carga.get(escolhido.nome) + 1);
+  }
+  const contagem = {};
+  for (const s of ativos) contagem[s.nome] = carga.get(s.nome);
+  const resumo = ativos.map((s) => `${s.nome}: ${contagem[s.nome]}`).join(' · ');
+  return { atribuicoes, contagem, resumo, avisos };
+}
+
+function aplicarDistribuicao(processos, resultado) {
+  for (const p of processos) {
+    if (resultado.atribuicoes.has(p.numero)) p.responsavel = resultado.atribuicoes.get(p.numero);
+  }
+  return processos;
+}
+
+function contarPorResponsavel(processos, servidores) {
+  const ativos = normalizarServidores(servidores).sort((a, b) => compararNomes(a.nome, b.nome));
+  const contagem = {};
+  for (const s of ativos) contagem[s.nome] = 0;
+  for (const p of processos) if (p.responsavel && p.responsavel in contagem) contagem[p.responsavel]++;
+  return { contagem, resumo: ativos.map((s) => `${s.nome}: ${contagem[s.nome]}`).join(' · ') };
+}
+
+
+// ---- src/distribuidor/painel.js ----
+
+const FRASE_MARCO_228 = 'A data considerada é a de entrada na tarefa do PJe, usada como aproximação do marco do art. 228 do CPC.';
+const TEXTO_REGRA = '1º urgência reconhecida pelo juiz · 2º preferências legais por antiguidade · 3º lista geral por antiguidade (CPC, arts. 12 e 153).';
+const TEXTO_RODAPE = 'Entrada: relação copiada do painel de tarefas do PJe pelo próprio servidor. Nenhum dado sai do computador da vara.';
+
+// Junta ordenação, prazos do art. 228 e alertas. Não altera os processos.
+function montarPainel(processos, { modulo, referencia, contagem, servidores = [] }) {
+  const filas = organizarFilas(processos, modulo);
+  const cfg = prepararContagem(contagem);
+  const nomes = new Set((servidores || []).map((s) => String(s.nome || '').trim()).filter(Boolean));
+  const contadores = { urgencia: filas.urgencia.length, preferencia: filas.preferencia.length, geral: filas.geral.length, acimaPrazo: 0, concorrentes: 0, total: processos.length };
+  for (const e of filas.sequencia) {
+    const p = e.processo;
+    const prazo = avaliarPrazo228(p, referencia, cfg);
+    e.dias = prazo.dias;
+    e.prazo = prazo;
+    e.alertas = [];
+    if (e.lista === 'urgencia' && !String(p.urgenciaJuiz.referencia || '').trim()) e.alertas.push('Urgência sem referência do pronunciamento');
+    if (e.concorrente) { e.alertas.push(ALERTA_CONCORRENCIA); contadores.concorrentes++; }
+    if (prazo.vencido) { e.alertas.push(prazo.alerta); contadores.acimaPrazo++; }
+    if (!p.dataEntrada) e.alertas.push('Sem data de entrada');
+    if (!p.preferenciaConfirmada && (p.preferencias || []).length) {
+      e.alertas.push('Preferência sugerida: confirmar (' + p.preferencias.map(rotuloPreferencia).join(', ') + ')');
+    }
+    if (p.sugestaoSigiloso && !p.sigiloso) e.alertas.push('Possível sigilo: conferir');
+    if (p.responsavelFixado && p.responsavel && !nomes.has(p.responsavel)) e.alertas.push('Responsável fixado fora do cadastro');
+  }
+  return { ...filas, contadores };
+}
+
+function rotuloListaEntrada(e) {
+  if (e.lista === 'preferencia' && e.marcadores.length) {
+    return `${ROTULOS_LISTA_CURTOS.preferencia}: ${e.marcadores.map(rotuloPreferencia).join(', ')}`;
+  }
+  return ROTULOS_LISTA_CURTOS[e.lista];
+}
+
+// Linhas para exportação pública: número de processo sigiloso sempre mascarado.
+function linhasExportacao(entradas, { modoContagem } = {}) {
+  const cab = ['Ordem na lista', 'Sequência', 'Processo', 'Lista', 'Providência', 'Tarefa', 'Na fila desde',
+    modoContagem === 'corridos' ? 'Dias (corridos)' : 'Dias (úteis)', 'Responsável', 'Alerta'];
+  const linhas = entradas.map((e) => [
+    e.ordem, e.posicao, numeroPublico(e.processo), rotuloListaEntrada(e), e.processo.providencia, e.processo.tarefa,
+    formatarDataBR(e.processo.dataEntrada), e.dias ?? '', e.processo.responsavel || '', (e.alertas || []).join(' / '),
+  ]);
+  return { cab, linhas };
+}
+
+function csvPainel(entradas, opcoes) {
+  const { cab, linhas } = linhasExportacao(entradas, opcoes);
+  return paraCSV(cab, linhas);
+}
+
+
+// ---- src/distribuidor/ui.js ----
+
+// Estado em memória. Dados de processo nunca vão para o localStorage: só para o arquivo de sessão que o usuário baixa.
+const estadoDist = {
+  modulo: 'secretaria',
+  dados: {
+    secretaria: { processos: [], servidores: [], resumo: '' },
+    gabinete: { processos: [], servidores: [], resumo: '' },
+  },
+  config: { contagem: { modo: 'uteis', feriados: [], suspensoes: [] }, referencia: '', perfilMapeamento: null },
+  lista: 'urgencia',
+  servidorFila: '',
+  previa: null,
+  tabela: null,
+  editando: null,
+  painel: null,
+};
+
+const PREFERENCIAS_EDITAVEIS = ['idoso', 'doenca_grave', 'eca', 'violencia_domestica', 'licitacao'];
+
+function moduloAtual() {
+  return estadoDist.dados[estadoDist.modulo];
+}
+
+function referenciaAtual() {
+  return estadoDist.config.referencia || hojeISO();
+}
+
+function temDados() {
+  return Object.values(estadoDist.dados).some((d) => d.processos.length > 0);
+}
+
+function recalcularPainel() {
+  const mod = moduloAtual();
+  estadoDist.painel = montarPainel(mod.processos, {
+    modulo: estadoDist.modulo,
+    referencia: referenciaAtual(),
+    contagem: estadoDist.config.contagem,
+    servidores: mod.servidores,
+  });
+}
+
+function rotuloContagem() {
+  return estadoDist.config.contagem.modo === 'corridos' ? 'dias corridos' : 'dias úteis';
+}
+
+// ---------- Renderização ----------
+
+function renderizarTudo() {
+  recalcularPainel();
+  renderizarAbasModulo();
+  renderizarServidores();
+  renderizarContadores();
+  renderizarLista();
+  $('#th-dias').textContent = estadoDist.config.contagem.modo === 'corridos' ? 'Dias (corridos)' : 'Dias (úteis)';
+  const modoPadrao = estadoDist.config.contagem.modo === 'uteis' ? ' (padrão provisório, pendente de decisão do juízo)' : '';
+  $('#nota-lista').textContent = `${FRASE_MARCO_228} Contagem em ${rotuloContagem()}${modoPadrao}, com referência em ${formatarDataBR(referenciaAtual(), { hora: false })}.`;
+}
+
+function renderizarAbasModulo() {
+  $$('[data-modulo]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.modulo === estadoDist.modulo)));
+  const gab = estadoDist.modulo === 'gabinete';
+  $('#previa-minuta-campo').hidden = !gab;
+  $('#previa-tipo-prazo').value = MODULOS[estadoDist.modulo].tipoPrazoPadrao;
+}
+
+function renderizarContadores() {
+  const c = estadoDist.painel.contadores;
+  const caixas = [
+    ['urg', c.urgencia, 'Urgentes (reconhecidas pelo juiz)'],
+    ['pref', c.preferencia, estadoDist.modulo === 'gabinete' ? 'Preferências legais e metas do CNJ' : 'Preferências legais'],
+    ['ger', c.geral, 'Lista geral'],
+    ['alerta', c.acimaPrazo, `Acima do prazo do art. 228 (${rotuloContagem()})`],
+    ['alerta', c.concorrentes, 'Preferências concorrentes: decisão do juiz'],
+  ];
+  const alvo = limpar($('#contadores'));
+  for (const [cls, valor, rotulo] of caixas) {
+    alvo.append(el('div', { class: `contador ${cls}` }, el('div', { class: 'valor' }, String(valor)), el('div', { class: 'rotulo' }, rotulo)));
+  }
+  for (const lista of ['urgencia', 'preferencia', 'geral']) {
+    const s = $(`[data-cont="${lista}"]`);
+    if (s) s.textContent = String(c[lista]);
+  }
+}
+
+function entradasDaLista() {
+  const p = estadoDist.painel;
+  if (estadoDist.lista === 'todas') return p.sequencia.map((e) => ({ ...e, ordemExibida: e.posicao }));
+  if (estadoDist.lista === 'servidor') {
+    return p.sequencia.filter((e) => e.processo.responsavel === estadoDist.servidorFila)
+      .map((e, i) => ({ ...e, ordemExibida: i + 1 }));
+  }
+  return p[estadoDist.lista].map((e) => ({ ...e, ordemExibida: e.ordem }));
+}
+
+function celulaProcesso(p) {
+  return el('td', {},
+    el('span', { class: 'num' }, p.numero),
+    p.sigiloso ? el('div', {}, el('span', { class: 'selo sigilo' }, 'SIGILOSO')) : null);
+}
+
+function celulaProvidencia(p) {
+  const partes = [];
+  if (estadoDist.modulo === 'gabinete' && p.tipoMinuta) partes.push(el('span', { class: 'selo' }, TIPOS_MINUTA[p.tipoMinuta]));
+  partes.push(p.providencia || p.tarefa || '');
+  if (p.etiquetas && p.etiquetas.length) partes.push(el('div', { class: 'muted pequeno' }, 'Etiquetas: ' + p.etiquetas.join(', ')));
+  return el('td', {}, ...partes);
+}
+
+function celulaLista(e) {
+  const cls = e.lista === 'urgencia' ? 'urg' : e.lista === 'preferencia' ? 'pref' : '';
+  const ref = e.lista === 'urgencia' && e.processo.urgenciaJuiz.referencia ? el('div', { class: 'muted pequeno' }, 'Ref.: ' + e.processo.urgenciaJuiz.referencia) : null;
+  const ordemJuiz = Number.isInteger(e.processo.ordemDefinidaPeloJuiz) && e.lista === 'preferencia'
+    ? el('div', { class: 'muted pequeno' }, `Ordem definida pelo juiz: ${e.processo.ordemDefinidaPeloJuiz}`) : null;
+  return el('td', {}, el('span', { class: `selo ${cls}` }, rotuloListaEntrada(e)), ref, ordemJuiz);
+}
+
+function renderizarLista() {
+  $$('#abas-listas [data-lista]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.lista === estadoDist.lista)));
+  const barra = $('#barra-servidor');
+  barra.hidden = estadoDist.lista !== 'servidor';
+  if (estadoDist.lista === 'servidor') {
+    const sel = limpar($('#sel-servidor-fila'));
+    const servidores = normalizarServidores(moduloAtual().servidores).sort((a, b) => compararNomes(a.nome, b.nome));
+    if (!servidores.some((s) => s.nome === estadoDist.servidorFila)) estadoDist.servidorFila = servidores[0]?.nome || '';
+    for (const s of servidores) sel.append(el('option', { value: s.nome }, s.nome));
+    sel.value = estadoDist.servidorFila;
+  }
+  const corpo = limpar($('#lista-corpo'));
+  const entradas = entradasDaLista();
+  if (!entradas.length) {
+    const msg = estadoDist.lista === 'servidor' && !estadoDist.servidorFila
+      ? 'Cadastre servidores e clique em "Distribuir a carga".'
+      : moduloAtual().processos.length ? 'Nenhum processo nesta lista.' : 'Nenhum processo na fila. Use a entrada de dados acima.';
+    corpo.append(el('tr', {}, el('td', { colspan: 8, class: 'vazio' }, msg)));
+    return;
+  }
+  for (const e of entradas) {
+    const p = e.processo;
+    const tr = el('tr', { class: 'clicavel', tabindex: 0, dataset: { numero: p.numero }, title: 'Clique para editar' },
+      el('td', { class: 'dias' }, String(e.ordemExibida)),
+      celulaProcesso(p),
+      celulaProvidencia(p),
+      el('td', { class: 'num' }, p.dataEntrada ? formatarDataBR(p.dataEntrada) : 'sem data'),
+      el('td', { class: 'dias' }, e.dias === null || e.dias === undefined ? '' : String(e.dias)),
+      celulaLista(e),
+      el('td', {}, p.responsavel || el('span', { class: 'muted' }, '(sem)'), p.responsavelFixado ? el('div', { class: 'muted pequeno' }, 'fixado') : null),
+      el('td', { class: 'alertas-celula' }, ...e.alertas.map((a) => el('div', {}, a))),
+    );
+    corpo.append(tr);
+  }
+}
+
+function renderizarServidores() {
+  const mod = moduloAtual();
+  const { contagem } = contarPorResponsavel(mod.processos, mod.servidores);
+  const corpo = limpar($('#servidores-corpo'));
+  if (!mod.servidores.length) {
+    corpo.append(el('tr', {}, el('td', { colspan: 4, class: 'vazio' }, 'Nenhum servidor cadastrado neste módulo.')));
+  }
+  mod.servidores.forEach((s, i) => {
+    const fator = el('input', { type: 'number', min: 10, max: 100, step: 5, value: Math.round(s.fator * 100), style: 'width:4.5rem', 'aria-label': `Fator de ${s.nome}` });
+    fator.addEventListener('change', () => {
+      const v = Number(fator.value);
+      if (!(v >= 10 && v <= 100)) { avisar('O fator deve ficar entre 10% e 100%.', 'erro'); fator.value = Math.round(s.fator * 100); return; }
+      s.fator = v / 100;
+      avisar('Fator alterado. Clique em "Distribuir a carga" para redistribuir.');
+    });
+    corpo.append(el('tr', {},
+      el('td', {}, s.nome),
+      el('td', {}, fator, ' %'),
+      el('td', { class: 'dias' }, String(contagem[s.nome] ?? 0)),
+      el('td', {}, el('button', { type: 'button', class: 'discreto', onclick: () => removerServidor(i) }, 'Remover'))));
+  });
+  const r = $('#resumo-distribuicao');
+  r.hidden = !mod.resumo;
+  r.textContent = mod.resumo ? 'Distribuição: ' + mod.resumo : '';
+}
+
+// ---------- Entrada de dados ----------
+
+function mostrarEntrada(tipo) {
+  $$('[data-entrada]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.entrada === tipo)));
+  $('#entrada-texto').hidden = tipo !== 'texto';
+  $('#entrada-tabela').hidden = tipo !== 'tabela';
+  $('#entrada-manual').hidden = tipo !== 'manual';
+}
+
+function abrirPrevia(resultado) {
+  const numerosNaFila = new Set(moduloAtual().processos.map((p) => p.numero));
+  estadoDist.previa = {
+    ...resultado,
+    itens: resultado.itens.map((it) => ({ ...it, incluir: true, jaNaFila: numerosNaFila.has(it.numero) })),
+  };
+  renderizarPrevia();
+  $('#previa').hidden = false;
+  $('#previa').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderizarPrevia() {
+  const pv = estadoDist.previa;
+  if (!pv) { $('#previa').hidden = true; return; }
+  const semData = pv.itens.filter((i) => !i.dataEntrada).length;
+  const varias = pv.itens.filter((i) => i.datasEncontradas.length > 1).length;
+  const semNumero = pv.incompletos.filter((i) => i.tipo === 'sem_numero');
+  $('#previa-resumo').textContent = `${pv.itens.length} processo(s) reconhecido(s). ${semData} sem data. ${varias} com mais de uma data (escolha a correta). ${semNumero.length} linha(s) sem número de processo, ignorada(s). ${pv.avisos.length} número(s) repetido(s).`;
+  const avisos = limpar($('#previa-avisos'));
+  if (pv.avisos.length) {
+    avisos.append(el('div', { class: 'pendente' }, el('strong', {}, 'Repetidos: '),
+      pv.avisos.map((a) => `${a.numero} ${a.mensagem}${a.dataMantida ? ' (' + formatarDataBR(a.dataMantida) + ')' : ''}`).join('; ') + '.'));
+  }
+  if (semNumero.length) {
+    const det = el('details', { class: 'pendente' }, el('summary', {}, `Linhas sem número de processo (${semNumero.length}), fora da prévia`));
+    semNumero.slice(0, 50).forEach((i) => det.append(el('div', { class: 'num pequeno' }, `linha ${i.linha}: ${i.trecho}`)));
+    avisos.append(det);
+  }
+  const corpo = limpar($('#previa-corpo'));
+  pv.itens.forEach((it, idx) => {
+    const chk = el('input', { type: 'checkbox', checked: it.incluir, 'aria-label': `Incluir ${it.numero}` });
+    chk.addEventListener('change', () => { it.incluir = chk.checked; renderizarPrevia(); });
+    let campoData;
+    if (it.datasEncontradas.length > 1) {
+      campoData = el('select', { 'aria-label': `Data de ${it.numero}` }, ...it.datasEncontradas.map((d) => el('option', { value: d }, formatarDataBR(d))));
+      campoData.value = it.dataEntrada;
+      campoData.addEventListener('change', () => { it.dataEntrada = campoData.value; });
+    } else {
+      campoData = el('input', { type: 'text', size: 16, class: 'num', value: it.dataEntrada ? formatarDataBR(it.dataEntrada) : '', placeholder: 'dd/mm/aaaa hh:mm', 'aria-label': `Data de ${it.numero}` });
+      campoData.addEventListener('change', () => {
+        const d = lerData(campoData.value);
+        if (campoData.value.trim() && !d) { avisar('Data não reconhecida. Use dd/mm/aaaa hh:mm.', 'erro'); return; }
+        it.dataEntrada = d;
+        renderizarPrevia();
+      });
+    }
+    const tarefa = el('input', { type: 'text', value: it.tarefa, size: 22, 'aria-label': `Tarefa de ${it.numero}` });
+    tarefa.addEventListener('change', () => { it.tarefa = tarefa.value.trim(); });
+    const sugestoes = [];
+    if (it.sugestoesPreferencia.length) sugestoes.push(el('div', { class: 'sugestao' }, 'Prioridade? ' + it.sugestoesPreferencia.map(rotuloPreferencia).join(', ')));
+    if (it.sugestaoSigiloso) sugestoes.push(el('div', { class: 'sugestao' }, 'Sigilo?'));
+    const situacao = [];
+    if (!it.dataEntrada) situacao.push(el('span', { class: 'selo alerta' }, 'Sem data'));
+    if (it.datasEncontradas.length > 1) situacao.push(el('span', { class: 'selo alerta' }, 'Várias datas: confira'));
+    if (it.jaNaFila) situacao.push(el('span', { class: 'selo' }, 'Já está na fila'));
+    if (!situacao.length) situacao.push(el('span', { class: 'selo ok' }, 'Reconhecido'));
+    corpo.append(el('tr', {},
+      el('td', {}, chk),
+      el('td', { class: 'num' }, it.numero),
+      el('td', {}, campoData),
+      el('td', {}, tarefa),
+      el('td', { class: 'pequeno' }, it.etiquetas.join(', ')),
+      el('td', {}, ...sugestoes),
+      el('td', {}, ...situacao)));
+    if (idx === 0) chk.dataset.primeiro = '1';
+  });
+  const n = pv.itens.filter((i) => i.incluir).length;
+  $('#bt-aceitar-previa').textContent = 'Aceitar e incluir na fila';
+  $('#bt-aceitar-previa').disabled = n === 0;
+}
+
+function aceitarPrevia() {
+  const pv = estadoDist.previa;
+  if (!pv) return;
+  const mod = moduloAtual();
+  const tarefaPadrao = $('#previa-tarefa-padrao').value.trim();
+  const tipoPrazo228 = $('#previa-tipo-prazo').value;
+  const tipoMinuta = $('#previa-tipo-minuta').value;
+  const porNumero = new Map(mod.processos.map((p) => [p.numero, p]));
+  let incluidos = 0, atualizados = 0, mantidos = 0;
+  for (const it of pv.itens) {
+    if (!it.incluir) continue;
+    const existente = porNumero.get(it.numero);
+    if (existente) {
+      if (it.dataEntrada && (!existente.dataEntrada || it.dataEntrada < existente.dataEntrada)) { existente.dataEntrada = it.dataEntrada; atualizados++; }
+      else mantidos++;
+      continue;
+    }
+    const tarefa = it.tarefa || tarefaPadrao;
+    const p = novoProcesso({
+      numero: it.numero, dataEntrada: it.dataEntrada, tarefa, providencia: it.providencia || tarefa, etiquetas: it.etiquetas,
+      sugestoesPreferencia: it.sugestoesPreferencia, sugestaoSigiloso: it.sugestaoSigiloso, tipoPrazo228,
+      tipoMinuta: tipoMinuta === 'pela_tarefa' ? (tipoMinutaPelaTarefa(tarefa) || 'despacho') : tipoMinuta,
+    }, estadoDist.modulo);
+    mod.processos.push(p);
+    porNumero.set(p.numero, p);
+    incluidos++;
+  }
+  estadoDist.previa = null;
+  $('#previa').hidden = true;
+  mod.resumo = '';
+  renderizarTudo();
+  const partes = [`${incluidos} processo(s) incluído(s)`];
+  if (atualizados) partes.push(`${atualizados} já na fila com data atualizada para a mais antiga`);
+  if (mantidos) partes.push(`${mantidos} já na fila e mantido(s)`);
+  avisar(partes.join('; ') + '. Clique em "Distribuir a carga" para atribuir os novos.', 'ok');
+}
+
+function lerTabelaColada(texto) {
+  const t = lerTabela(texto);
+  if (!t.linhas.length) { avisar('Nenhuma linha encontrada na tabela.', 'erro'); return; }
+  estadoDist.tabela = t;
+  const cab = t.linhas[0];
+  const mapa = estadoDist.config.perfilMapeamento
+    ? aplicarPerfilMapeamento(estadoDist.config.perfilMapeamento, cab)
+    : sugerirMapeamento(cab);
+  if (estadoDist.config.perfilMapeamento) $('#chk-cabecalho').checked = !!estadoDist.config.perfilMapeamento.temCabecalho;
+  renderizarMapeamento(mapa);
+  $('#mapeamento').hidden = false;
+}
+
+function renderizarMapeamento(mapa) {
+  const t = estadoDist.tabela;
+  const ncol = Math.max(...t.linhas.map((l) => l.length));
+  const cab = t.linhas[0];
+  const alvo = limpar($('#mapa-campos'));
+  for (const campo of CAMPOS_MAPEAMENTO) {
+    const sel = el('select', { dataset: { campo: campo.chave } }, el('option', { value: -1 }, '(não usar)'));
+    for (let i = 0; i < ncol; i++) {
+      const nome = $('#chk-cabecalho').checked && cab[i] ? `${i + 1}: ${cab[i]}` : `Coluna ${i + 1} (ex.: ${String(cab[i] ?? '').slice(0, 18)})`;
+      sel.append(el('option', { value: i }, nome));
+    }
+    sel.value = String(mapa[campo.chave] ?? -1);
+    alvo.append(el('label', { class: 'campo' }, el('span', {}, campo.rotulo + (campo.obrigatorio ? ' *' : '')), sel));
+  }
+}
+
+function mapaAtual() {
+  const mapa = {};
+  $$('#mapa-campos select').forEach((s) => { mapa[s.dataset.campo] = Number(s.value); });
+  return mapa;
+}
+
+function aplicarMapeamentoAtual() {
+  const t = estadoDist.tabela;
+  if (!t) return;
+  const mapa = mapaAtual();
+  if (mapa.numero < 0) { avisar('Indique a coluna do número do processo.', 'erro'); return; }
+  if (mapa.dataEntrada < 0) avisar('Sem coluna de data: os processos entram sem data e vão para o fim das listas.', 'erro');
+  const temCabecalho = $('#chk-cabecalho').checked;
+  estadoDist.config.perfilMapeamento = criarPerfilMapeamento(mapa, t.linhas[0], temCabecalho);
+  abrirPrevia(aplicarMapeamento(t.linhas, mapa, { temCabecalho }));
+}
+
+function incluirManual() {
+  const numero = $('#man-numero').value.trim();
+  RE_CNJ.lastIndex = 0;
+  if (!new RegExp(`^${RE_CNJ.source}$`).test(numero)) { avisar('Número fora do padrão CNJ (NNNNNNN-DD.AAAA.J.TR.OOOO).', 'erro'); return; }
+  const mod = moduloAtual();
+  if (mod.processos.some((p) => p.numero === numero)) { avisar('Este processo já está na fila do módulo.', 'erro'); return; }
+  const data = $('#man-data').value;
+  const hora = $('#man-hora').value || '00:00';
+  const dataEntrada = data ? lerData(`${data}T${hora}`) : null;
+  const tarefa = $('#man-tarefa').value.trim();
+  mod.processos.push(novoProcesso({
+    numero, dataEntrada, tarefa, providencia: $('#man-providencia').value.trim() || tarefa, sigiloso: $('#man-sigiloso').checked,
+  }, estadoDist.modulo));
+  ['#man-numero', '#man-data', '#man-hora', '#man-tarefa', '#man-providencia'].forEach((s) => { $(s).value = ''; });
+  $('#man-sigiloso').checked = false;
+  renderizarTudo();
+  avisar(dataEntrada ? 'Processo incluído.' : 'Processo incluído sem data: vai para o fim da lista.', 'ok');
+}
+
+// ---------- Servidores ----------
+
+function adicionarServidor() {
+  const nome = $('#novo-servidor').value.trim();
+  const fator = Number($('#novo-fator').value);
+  if (!nome) { avisar('Informe o nome curto do servidor.', 'erro'); return; }
+  if (!(fator >= 10 && fator <= 100)) { avisar('O fator deve ficar entre 10% e 100%.', 'erro'); return; }
+  const mod = moduloAtual();
+  if (mod.servidores.some((s) => s.nome === nome)) { avisar('Já existe servidor com esse nome.', 'erro'); return; }
+  mod.servidores.push({ nome, fator: fator / 100 });
+  $('#novo-servidor').value = '';
+  $('#novo-fator').value = '100';
+  renderizarTudo();
+}
+
+function removerServidor(i) {
+  const mod = moduloAtual();
+  const s = mod.servidores[i];
+  if (!s) return;
+  if (!confirm(`Remover ${s.nome}? Os processos atribuídos a ele (não fixados) ficam sem responsável.`)) return;
+  mod.servidores.splice(i, 1);
+  for (const p of mod.processos) if (p.responsavel === s.nome && !p.responsavelFixado) p.responsavel = null;
+  mod.resumo = '';
+  renderizarTudo();
+}
+
+function distribuirCarga() {
+  const mod = moduloAtual();
+  recalcularPainel();
+  const r = distribuir(estadoDist.painel.sequencia.map((e) => e.processo), mod.servidores);
+  if (r.avisos.length && !r.atribuicoes.size) { avisar(r.avisos[0], 'erro'); return; }
+  aplicarDistribuicao(mod.processos, r);
+  mod.resumo = r.resumo;
+  renderizarTudo();
+  avisar('Carga distribuída. ' + r.resumo + (r.avisos.length ? ' Atenção: ' + r.avisos.join(' ') : ''), r.avisos.length ? 'erro' : 'ok');
+}
+
+// ---------- Edição do processo ----------
+
+function abrirEdicao(numero) {
+  const p = moduloAtual().processos.find((x) => x.numero === numero);
+  if (!p) return;
+  estadoDist.editando = numero;
+  const gab = estadoDist.modulo === 'gabinete';
+  const corpo = limpar($('#dlg-processo-corpo'));
+  $('#dlg-processo-tit').textContent = `Processo ${p.numero}`;
+  const partesData = p.dataEntrada ? partesISO(p.dataEntrada) : null;
+
+  const servidores = normalizarServidores(moduloAtual().servidores).sort((a, b) => compararNomes(a.nome, b.nome));
+  const selResp = el('select', { id: 'ed-responsavel' }, el('option', { value: '' }, '(sem responsável)'),
+    ...servidores.map((s) => el('option', { value: s.nome }, s.nome)));
+  if (p.responsavel && !servidores.some((s) => s.nome === p.responsavel)) selResp.append(el('option', { value: p.responsavel }, `${p.responsavel} (fora do cadastro)`));
+  selResp.value = p.responsavel || '';
+
+  const prefs = el('div', { class: 'linha' }, ...PREFERENCIAS_EDITAVEIS.map((k) =>
+    el('label', {}, el('input', { type: 'checkbox', class: 'ed-pref', value: k, checked: p.preferencias.includes(k) }), ROTULOS_PREFERENCIA[k])));
+  const outra = (p.preferencias.find((x) => String(x).startsWith('outra:')) || '').slice(6);
+
+  anexar(corpo,
+    el('fieldset', {}, el('legend', {}, 'Identificação'),
+      el('div', { class: 'linha' },
+        el('label', {}, el('input', { type: 'checkbox', id: 'ed-sigiloso', checked: p.sigiloso }), 'Sigiloso: mascarar o número em CSV e impressão'),
+        p.sugestaoSigiloso && !p.sigiloso ? el('span', { class: 'sugestao' }, 'Sugestão do reconhecimento: possível sigilo. Confira.') : null),
+      el('div', { class: 'linha' },
+        el('label', { class: 'campo', style: 'flex:1 1 220px' }, el('span', {}, 'Tarefa (painel do PJe)'), el('input', { type: 'text', id: 'ed-tarefa', value: p.tarefa })),
+        el('label', { class: 'campo', style: 'flex:1 1 220px' }, el('span', {}, 'Providência'), el('input', { type: 'text', id: 'ed-providencia', value: p.providencia }))),
+      el('div', { class: 'linha' },
+        el('label', { class: 'campo' }, el('span', {}, 'Data de entrada na tarefa'), el('input', { type: 'date', id: 'ed-data', value: partesData ? `${partesData.a}-${pad2(partesData.m)}-${pad2(partesData.d)}` : '' })),
+        el('label', { class: 'campo' }, el('span', {}, 'Hora'), el('input', { type: 'time', id: 'ed-hora', value: partesData ? `${pad2(partesData.h)}:${pad2(partesData.mi)}` : '' })),
+        el('label', { class: 'campo' }, el('span', {}, 'Prazo do art. 228'),
+          el('select', { id: 'ed-prazo' }, ...Object.entries(ROTULOS_228).map(([k, v]) => el('option', { value: k }, v)))),
+        gab ? el('label', { class: 'campo' }, el('span', {}, 'Tipo de minuta'),
+          el('select', { id: 'ed-minuta' }, ...Object.entries(TIPOS_MINUTA).map(([k, v]) => el('option', { value: k }, v)))) : null)),
+    el('fieldset', {}, el('legend', {}, 'Urgência reconhecida pelo juiz'),
+      el('label', {}, el('input', { type: 'checkbox', id: 'ed-urgencia', checked: p.urgenciaJuiz.reconhecida }), 'O juiz reconheceu a urgência no pronunciamento'),
+      el('label', { class: 'campo' }, el('span', {}, 'Referência do pronunciamento (ID no PJe) *'), el('input', { type: 'text', id: 'ed-urg-ref', value: p.urgenciaJuiz.referencia, placeholder: 'ex.: ID 123456789' })),
+      el('p', { class: 'muted pequeno' }, 'Só o juiz reconhece urgência (CPC, art. 153, § 2º, I). A ferramenta não sugere urgência.')),
+    el('fieldset', {}, el('legend', {}, gab ? 'Preferências legais e meta do CNJ' : 'Preferências legais (CPC, art. 1.048)'),
+      p.sugestoesPreferencia.length ? el('p', { class: 'sugestao' }, 'Sugestão do reconhecimento: ' + p.sugestoesPreferencia.map(rotuloPreferencia).join(', ') + '. Confirme à vista da prova da condição.') : null,
+      prefs,
+      el('label', { class: 'campo' }, el('span', {}, 'Outra preferência legal (descreva)'), el('input', { type: 'text', id: 'ed-pref-outra', value: outra })),
+      el('label', {}, el('input', { type: 'checkbox', id: 'ed-pref-confirmada', checked: p.preferenciaConfirmada }), 'Preferência confirmada pelo servidor à vista da prova da condição (art. 1.048, § 4º)'),
+      gab ? el('div', {}, el('label', {}, el('input', { type: 'checkbox', id: 'ed-meta', checked: p.metaCNJ }), 'Meta do CNJ (art. 12, § 2º, VII)')) : null,
+      el('label', { class: 'campo' }, el('span', {}, 'Ordem definida pelo juiz entre preferências concorrentes'),
+        el('input', { type: 'number', id: 'ed-ordem-juiz', min: 1, step: 1, style: 'width:6rem', value: Number.isInteger(p.ordemDefinidaPeloJuiz) ? p.ordemDefinidaPeloJuiz : '' })),
+      el('p', { class: 'muted pequeno' }, 'Preencha só quando o juiz tiver definido a ordem entre preferências concorrentes (CNJ, PP 0005150-49.2024.2.00.0000). Em branco, vale a antiguidade.')),
+    el('fieldset', {}, el('legend', {}, 'Responsável'),
+      el('div', { class: 'linha' }, selResp,
+        el('label', {}, el('input', { type: 'checkbox', id: 'ed-fixado', checked: p.responsavelFixado }), 'Fixar responsável (a distribuição mantém)'))),
+    el('label', { class: 'campo' }, el('span', {}, 'Observação'), el('textarea', { id: 'ed-obs', rows: 2 }, p.observacao)),
+    el('div', { id: 'ed-erros' }),
+  );
+  $('#ed-prazo').value = p.tipoPrazo228;
+  if (gab) $('#ed-minuta').value = p.tipoMinuta || 'despacho';
+  abrirDialogo('dlg-processo');
+}
+
+function salvarEdicao() {
+  const p = moduloAtual().processos.find((x) => x.numero === estadoDist.editando);
+  if (!p) return;
+  const erros = [];
+  const urg = $('#ed-urgencia').checked;
+  const ref = $('#ed-urg-ref').value.trim();
+  if (urg && !ref) erros.push('Informe a referência do pronunciamento em que o juiz reconheceu a urgência.');
+  const prefs = $$('.ed-pref').filter((c) => c.checked).map((c) => c.value);
+  const outra = $('#ed-pref-outra').value.trim();
+  if (outra) prefs.push('outra:' + outra);
+  const confirmada = $('#ed-pref-confirmada').checked;
+  if (confirmada && !prefs.length) erros.push('Marque ao menos uma preferência para confirmar.');
+  const ordemTxt = $('#ed-ordem-juiz').value.trim();
+  const ordem = ordemTxt ? Number(ordemTxt) : null;
+  if (ordemTxt && !(Number.isInteger(ordem) && ordem >= 1)) erros.push('A ordem definida pelo juiz deve ser um número inteiro a partir de 1.');
+  const data = $('#ed-data').value;
+  const dataEntrada = data ? lerData(`${data}T${$('#ed-hora').value || '00:00'}`) : null;
+  if (erros.length) {
+    limpar($('#ed-erros')).append(el('div', { class: 'alerta-caixa' }, ...erros.map((e) => el('div', {}, e))));
+    return;
+  }
+  p.sigiloso = $('#ed-sigiloso').checked;
+  p.tarefa = $('#ed-tarefa').value.trim();
+  p.providencia = $('#ed-providencia').value.trim();
+  p.dataEntrada = dataEntrada;
+  p.tipoPrazo228 = $('#ed-prazo').value;
+  if (estadoDist.modulo === 'gabinete') { p.tipoMinuta = $('#ed-minuta').value; p.metaCNJ = $('#ed-meta').checked; }
+  p.urgenciaJuiz = { reconhecida: urg, referencia: ref };
+  p.preferencias = prefs;
+  p.preferenciaConfirmada = confirmada && prefs.length > 0;
+  p.ordemDefinidaPeloJuiz = ordem;
+  p.responsavel = $('#ed-responsavel').value || null;
+  p.responsavelFixado = $('#ed-fixado').checked && !!p.responsavel;
+  p.observacao = $('#ed-obs').value;
+  fecharDialogo('dlg-processo');
+  renderizarTudo();
+  avisar('Processo atualizado.', 'ok');
+}
+
+function removerProcesso() {
+  const mod = moduloAtual();
+  const i = mod.processos.findIndex((x) => x.numero === estadoDist.editando);
+  if (i < 0) return;
+  if (!confirm('Remover este processo da fila? (Nada muda no PJe.)')) return;
+  mod.processos.splice(i, 1);
+  fecharDialogo('dlg-processo');
+  renderizarTudo();
+}
+
+// ---------- Exportação e impressão ----------
+
+function nomeListaAtual() {
+  if (estadoDist.lista === 'todas') return 'Todas as listas em sequência';
+  if (estadoDist.lista === 'servidor') return `Fila de ${estadoDist.servidorFila || '(sem servidor)'}`;
+  return ROTULOS_LISTA[estadoDist.lista];
+}
+
+function exportarCSV(entradas, sufixo) {
+  const csv = csvPainel(entradas, { modoContagem: estadoDist.config.contagem.modo });
+  baixarArquivo(`distribuidor_${estadoDist.modulo}_${sufixo}_${carimboArquivo()}.csv`, csv, 'text/csv;charset=utf-8');
+}
+
+function imprimirLista() {
+  const entradas = entradasDaLista();
+  const mod = MODULOS[estadoDist.modulo].rotulo;
+  const tabela = el('table', {},
+    el('thead', {}, el('tr', {}, ...['Ordem', 'Processo', 'Providência', 'Na fila desde', estadoDist.config.contagem.modo === 'corridos' ? 'Dias (corridos)' : 'Dias (úteis)', 'Lista', 'Responsável', 'Alerta'].map((t) => el('th', {}, t)))),
+    el('tbody', {}, ...(entradas.length ? entradas.map((e) => el('tr', {},
+      el('td', {}, String(e.ordemExibida)),
+      el('td', { class: 'num' }, numeroPublico(e.processo)),
+      el('td', {}, (estadoDist.modulo === 'gabinete' && e.processo.tipoMinuta ? TIPOS_MINUTA[e.processo.tipoMinuta] + ': ' : '') + (e.processo.providencia || e.processo.tarefa || '')),
+      el('td', {}, formatarDataBR(e.processo.dataEntrada)),
+      el('td', {}, e.dias ?? ''),
+      el('td', {}, rotuloListaEntrada(e)),
+      el('td', {}, e.processo.responsavel || ''),
+      el('td', {}, e.alertas.join(' / '))))
+      : [el('tr', {}, el('td', { colspan: 8 }, 'Nenhum processo.'))])));
+  const no = el('div', {},
+    el('div', { class: 'impressao-cab' },
+      el('div', { class: 'pequeno' }, 'OAB/PA Subseção Marabá · Distribuidor de Tarefas da Serventia (protótipo)'),
+      el('h1', {}, `${nomeListaAtual()} · Módulo ${mod}`),
+      el('div', { class: 'pequeno' }, `Referência: ${formatarDataBR(referenciaAtual(), { hora: false })} · Impresso em ${formatarDataBR(agoraISO())} · ${entradas.length} processo(s)`),
+      el('div', { class: 'pequeno' }, 'Regra de ordenação: ' + TEXTO_REGRA)),
+    tabela,
+    el('div', { class: 'impressao-rodape' }, TEXTO_RODAPE + ' ' + FRASE_MARCO_228 + ` Contagem em ${rotuloContagem()}. Números de processos sigilosos mascarados.`));
+  imprimirConteudo(no);
+}
+
+// ---------- Configurações, perfil e sessão ----------
+
+function abrirConfig() {
+  const c = estadoDist.config;
+  $$('input[name="modo-contagem"]').forEach((r) => { r.checked = r.value === c.contagem.modo; });
+  $('#cfg-referencia').value = c.referencia ? c.referencia.slice(0, 10) : '';
+  $('#cfg-feriados').value = feriadosParaTexto(c.contagem.feriados);
+  $('#cfg-suspensoes').value = suspensoesParaTexto(c.contagem.suspensoes);
+  $('#cfg-marco').textContent = FRASE_MARCO_228;
+  limpar($('#cfg-erros'));
+  abrirDialogo('dlg-config');
+}
+
+function aplicarConfig() {
+  const f = lerFeriados($('#cfg-feriados').value);
+  const s = lerSuspensoes($('#cfg-suspensoes').value);
+  const erros = [...f.erros, ...s.erros];
+  if (erros.length) {
+    limpar($('#cfg-erros')).append(el('div', { class: 'alerta-caixa' }, ...erros.map((e) => el('div', {}, e))));
+    return;
+  }
+  const modo = $$('input[name="modo-contagem"]').find((r) => r.checked)?.value || 'uteis';
+  const ref = $('#cfg-referencia').value;
+  estadoDist.config.contagem = { modo, feriados: f.feriados, suspensoes: s.suspensoes };
+  estadoDist.config.referencia = ref ? montarISO(...ref.split('-').map(Number)) : '';
+  fecharDialogo('dlg-config');
+  renderizarTudo();
+  avisar('Configurações aplicadas.', 'ok');
+}
+
+function perfilAtual() {
+  return { tipo: 'perfil-vara-distribuidor', versaoFormato: 1, salvoEm: agoraISO(), contagem: estadoDist.config.contagem, perfilMapeamento: estadoDist.config.perfilMapeamento };
+}
+
+function aplicarPerfil(dados) {
+  if (!dados || (dados.tipo !== 'perfil-vara-distribuidor' && dados.tipo !== 'perfil-mapeamento')) throw new Error('Arquivo não é um perfil desta ferramenta.');
+  if (dados.tipo === 'perfil-mapeamento') { estadoDist.config.perfilMapeamento = dados; return; }
+  const c = dados.contagem || {};
+  estadoDist.config.contagem = {
+    modo: c.modo === 'corridos' ? 'corridos' : 'uteis',
+    feriados: Array.isArray(c.feriados) ? c.feriados.filter((x) => lerData(x)) : [],
+    suspensoes: Array.isArray(c.suspensoes) ? c.suspensoes.filter((x) => x && lerData(x.inicio) && lerData(x.fim)) : [],
+  };
+  if (dados.perfilMapeamento) estadoDist.config.perfilMapeamento = dados.perfilMapeamento;
+}
+
+function sessaoAtual() {
+  return {
+    tipo: 'sessao-distribuidor-tarefas',
+    versaoFormato: 1,
+    ferramenta: 'Distribuidor de Tarefas da Serventia v1',
+    salvoEm: agoraISO(),
+    aviso: 'Arquivo de trabalho da vara. Contém números de processo: não compartilhe fora da unidade.',
+    config: estadoDist.config,
+    modulos: estadoDist.dados,
+  };
+}
+
+function abrirSessaoDados(dados) {
+  if (!dados || dados.tipo !== 'sessao-distribuidor-tarefas') throw new Error('Arquivo não é uma sessão do Distribuidor de Tarefas.');
+  const novo = {};
+  for (const m of Object.keys(MODULOS)) {
+    const d = dados.modulos?.[m] || {};
+    novo[m] = {
+      processos: (Array.isArray(d.processos) ? d.processos : []).filter((p) => p && p.numero).map((p) => novoProcesso(p, m)),
+      servidores: normalizarServidores(d.servidores || []),
+      resumo: String(d.resumo || ''),
+    };
+  }
+  estadoDist.dados = novo;
+  if (dados.config) {
+    aplicarPerfil({ tipo: 'perfil-vara-distribuidor', contagem: dados.config.contagem, perfilMapeamento: dados.config.perfilMapeamento });
+    estadoDist.config.referencia = dados.config.referencia && lerData(dados.config.referencia) ? lerData(dados.config.referencia) : '';
+  }
+}
+
+async function abrirJSON(acao) {
+  const arq = await escolherArquivo('.json,application/json');
+  if (!arq) return;
+  try {
+    const dados = JSON.parse(await lerArquivoTexto(arq));
+    acao(dados);
+    renderizarTudo();
+    avisar('Arquivo aberto.', 'ok');
+  } catch (e) {
+    avisar('Não foi possível abrir: ' + e.message, 'erro');
+  }
+}
+
+// ---------- Ligações ----------
+
+function ligarEventosDistribuidor() {
+  ligarFechamentoDialogos();
+  ligarTamanhoFonte('bt-fonte-menos', 'bt-fonte-mais');
+  $('#texto-regra').textContent = TEXTO_REGRA;
+  $('#rodape').textContent = TEXTO_RODAPE;
+
+  $$('[data-modulo]').forEach((b) => b.addEventListener('click', () => {
+    estadoDist.modulo = b.dataset.modulo;
+    estadoDist.previa = null;
+    $('#previa').hidden = true;
+    prefGravar('distribuidor-modulo', estadoDist.modulo);
+    renderizarTudo();
+  }));
+  $$('[data-entrada]').forEach((b) => b.addEventListener('click', () => mostrarEntrada(b.dataset.entrada)));
+  $$('#abas-listas [data-lista]').forEach((b) => b.addEventListener('click', () => {
+    estadoDist.lista = b.dataset.lista;
+    prefGravar('distribuidor-lista', estadoDist.lista);
+    renderizarLista();
+  }));
+  $('#sel-servidor-fila').addEventListener('change', (ev) => { estadoDist.servidorFila = ev.target.value; renderizarLista(); });
+
+  $('#bt-reconhecer').addEventListener('click', () => {
+    const texto = $('#txt-colar').value;
+    if (!texto.trim()) { avisar('Cole a relação antes de reconhecer.', 'erro'); return; }
+    abrirPrevia(reconhecerTextoLivre(texto));
+  });
+  $('#bt-exemplo').addEventListener('click', () => {
+    $('#txt-colar').value = estadoDist.modulo === 'gabinete' ? EXEMPLO_GABINETE : EXEMPLO_SECRETARIA;
+    avisar('Exemplo com dados fictícios carregado. Clique em "Reconhecer".');
+  });
+  $('#bt-limpar-colar').addEventListener('click', () => { $('#txt-colar').value = ''; });
+  $('#bt-ler-tabela').addEventListener('click', () => lerTabelaColada($('#txt-tabela').value));
+  $('#bt-exemplo-tabela').addEventListener('click', () => { $('#txt-tabela').value = EXEMPLO_GABINETE; lerTabelaColada(EXEMPLO_GABINETE); });
+  $('#bt-importar-csv').addEventListener('click', async () => {
+    const arq = await escolherArquivo('.csv,.tsv,.txt,text/csv,text/plain');
+    if (!arq) return;
+    const texto = await lerArquivoTexto(arq);
+    $('#txt-tabela').value = texto;
+    lerTabelaColada(texto);
+  });
+  $('#chk-cabecalho').addEventListener('change', () => { if (estadoDist.tabela) renderizarMapeamento(mapaAtual()); });
+  $('#bt-aplicar-mapa').addEventListener('click', aplicarMapeamentoAtual);
+  $('#bt-salvar-perfil-mapa').addEventListener('click', () => {
+    if (!estadoDist.tabela) return;
+    const perfil = criarPerfilMapeamento(mapaAtual(), estadoDist.tabela.linhas[0], $('#chk-cabecalho').checked);
+    estadoDist.config.perfilMapeamento = perfil;
+    baixarArquivo(`perfil-mapeamento_${carimboArquivo()}.json`, JSON.stringify(perfil, null, 2), 'application/json');
+  });
+  $('#bt-abrir-perfil-mapa').addEventListener('click', () => abrirJSON((d) => {
+    aplicarPerfil(d.tipo === 'perfil-mapeamento' ? d : { ...d });
+    if (estadoDist.tabela) {
+      $('#chk-cabecalho').checked = !!estadoDist.config.perfilMapeamento?.temCabecalho;
+      renderizarMapeamento(aplicarPerfilMapeamento(estadoDist.config.perfilMapeamento, estadoDist.tabela.linhas[0]));
+    }
+  }));
+  $('#bt-incluir-manual').addEventListener('click', incluirManual);
+  $('#bt-descartar-previa').addEventListener('click', () => { estadoDist.previa = null; $('#previa').hidden = true; });
+  $('#bt-aceitar-previa').addEventListener('click', aceitarPrevia);
+
+  $('#bt-add-servidor').addEventListener('click', adicionarServidor);
+  $('#novo-servidor').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') adicionarServidor(); });
+  $('#bt-distribuir').addEventListener('click', distribuirCarga);
+
+  $('#lista-corpo').addEventListener('click', (ev) => {
+    const tr = ev.target.closest('tr[data-numero]');
+    if (tr) abrirEdicao(tr.dataset.numero);
+  });
+  $('#lista-corpo').addEventListener('keydown', (ev) => {
+    const tr = ev.target.closest('tr[data-numero]');
+    if (tr && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); abrirEdicao(tr.dataset.numero); }
+  });
+  $('#bt-salvar-processo').addEventListener('click', salvarEdicao);
+  $('#bt-remover-processo').addEventListener('click', removerProcesso);
+
+  $('#bt-imprimir-lista').addEventListener('click', imprimirLista);
+  $('#bt-csv-lista').addEventListener('click', () => exportarCSV(entradasDaLista(), estadoDist.lista === 'servidor' ? `fila-${estadoDist.servidorFila}` : estadoDist.lista));
+  $('#bt-csv-completo').addEventListener('click', () => exportarCSV(estadoDist.painel.sequencia, 'completo'));
+  $('#bt-limpar-modulo').addEventListener('click', () => {
+    if (!confirm(`Esvaziar o módulo ${MODULOS[estadoDist.modulo].rotulo}? Processos e servidores deste módulo saem da ferramenta (nada muda no PJe). Salve a sessão antes, se precisar.`)) return;
+    estadoDist.dados[estadoDist.modulo] = { processos: [], servidores: [], resumo: '' };
+    renderizarTudo();
+  });
+
+  $('#bt-config').addEventListener('click', abrirConfig);
+  $('#bt-aplicar-config').addEventListener('click', aplicarConfig);
+  $('#bt-feriados-nacionais').addEventListener('click', () => {
+    const atuais = lerFeriados($('#cfg-feriados').value).feriados;
+    $('#cfg-feriados').value = feriadosParaTexto([...new Set([...atuais, ...FERIADOS_NACIONAIS_2026])].sort());
+  });
+  $('#bt-salvar-perfil').addEventListener('click', () => baixarArquivo(`perfil-vara_${carimboArquivo()}.json`, JSON.stringify(perfilAtual(), null, 2), 'application/json'));
+  $('#bt-abrir-perfil').addEventListener('click', () => abrirJSON((d) => { aplicarPerfil(d); fecharDialogo('dlg-config'); }));
+  $('#bt-sobre').addEventListener('click', () => abrirDialogo('dlg-sobre'));
+  $('#bt-salvar-sessao').addEventListener('click', () => {
+    baixarArquivo(`sessao-distribuidor_${carimboArquivo()}.json`, JSON.stringify(sessaoAtual(), null, 2), 'application/json');
+    avisar('Sessão salva no arquivo baixado. Guarde-o na pasta da vara.', 'ok');
+  });
+  $('#bt-abrir-sessao').addEventListener('click', () => {
+    if (temDados() && !confirm('Abrir outra sessão substitui os dados atuais. Continuar?')) return;
+    abrirJSON(abrirSessaoDados);
+  });
+
+  window.addEventListener('beforeunload', (ev) => {
+    if (temDados()) { ev.preventDefault(); ev.returnValue = ''; }
+  });
+
+  const modSalvo = prefLer('distribuidor-modulo', 'secretaria');
+  if (MODULOS[modSalvo]) estadoDist.modulo = modSalvo;
+  const listaSalva = prefLer('distribuidor-lista', 'urgencia');
+  if (['urgencia', 'preferencia', 'geral', 'todas', 'servidor'].includes(listaSalva)) estadoDist.lista = listaSalva;
+  renderizarTudo();
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ligarEventosDistribuidor);
+  else ligarEventosDistribuidor();
+}
+
+})();</script>
+</body>
+</html>

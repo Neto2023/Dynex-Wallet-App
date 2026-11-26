@@ -1,0 +1,181 @@
+/* Identidade OAB/PA Subseção Marabá: navy #001333, azul #0095D9, vermelho #D1232D só para alerta. */
+:root {
+  --navy: #001333;
+  --azul: #0095D9;
+  --azul-escuro: #006FA3;
+  --vermelho: #D1232D;
+  --fundo-1: #E0F2FB;
+  --fundo-2: #EBF6FD;
+  --zebra: #F2F2F2;
+  --borda: #C9D6E2;
+  --borda-campo: #7D8B99;
+  --texto: #1B1B1B;
+  --texto-2: #4A5563;
+  --ok: #1E6B3A;
+  --fonte: Arial, Helvetica, sans-serif;
+  --fonte-ato: "Times New Roman", Times, serif;
+  --fonte-num: Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #FFFFFF; color: var(--texto); }
+body { font-family: var(--fonte); font-size: 0.875rem; line-height: 1.45; }
+h1, h2, h3 { color: var(--navy); margin: 0; line-height: 1.25; }
+h2 { font-size: 1rem; }
+h3 { font-size: 0.9rem; }
+p { margin: 0.4rem 0; }
+a { color: var(--azul-escuro); }
+.num { font-family: var(--fonte-num); white-space: nowrap; }
+.muted { color: var(--texto-2); }
+.pequeno { font-size: 0.8rem; }
+[hidden] { display: none !important; }
+input[type=checkbox], input[type=radio] { width: 1.15rem; height: 1.15rem; margin: 0.2rem; }
+.pular { position: absolute; left: -9999px; top: 0; background: var(--navy); color: #FFFFFF; padding: 0.5rem 0.8rem; z-index: 50; }
+.pular:focus { left: 0.5rem; top: 0.5rem; }
+button.editar { font-size: 0.72rem; padding: 0.1rem 0.45rem; margin-top: 0.2rem; }
+
+/* Topo */
+.topo { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.25rem; border-bottom: 3px double var(--navy); background: #FFFFFF; flex-wrap: wrap; }
+.topo img { height: 46px; width: auto; }
+.topo-titulos { flex: 1 1 260px; min-width: 0; }
+.topo-inst { font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--azul-escuro); font-weight: bold; }
+.topo-inst .vermelho { color: var(--vermelho); }
+.topo h1 { font-size: 1.25rem; }
+.topo-sub { font-size: 0.78rem; color: var(--texto-2); }
+.topo-acoes { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+
+/* Botões e campos */
+button, .botao { font: inherit; font-size: 0.82rem; border: 1px solid var(--azul-escuro); background: #FFFFFF; color: var(--azul-escuro); padding: 0.35rem 0.7rem; border-radius: 3px; cursor: pointer; line-height: 1.3; }
+button:hover:not(:disabled) { background: var(--fundo-2); }
+button.primario { background: var(--azul-escuro); color: #FFFFFF; }
+button.primario:hover:not(:disabled) { background: var(--navy); }
+button.discreto { border-color: var(--borda-campo); color: var(--texto-2); }
+button.perigo { border-color: var(--vermelho); color: var(--vermelho); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--azul); outline-offset: 1px; }
+input[type=text], input[type=number], input[type=date], input[type=time], select, textarea { font: inherit; font-size: 0.85rem; border: 1px solid var(--borda-campo); border-radius: 3px; padding: 0.3rem 0.45rem; background: #FFFFFF; color: var(--texto); max-width: 100%; }
+textarea { width: 100%; resize: vertical; }
+textarea.cola { min-height: 9rem; font-family: var(--fonte-num); font-size: 0.78rem; }
+label { display: inline-flex; gap: 0.35rem; align-items: center; }
+.campo { display: flex; flex-direction: column; align-items: stretch; gap: 0.2rem; margin: 0.35rem 0; }
+.campo > span { font-size: 0.78rem; font-weight: bold; color: var(--navy); }
+.linha { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.linha.fim { justify-content: flex-end; }
+
+/* Abas */
+.abas { display: flex; gap: 0; border-bottom: 2px solid var(--navy); flex-wrap: wrap; }
+.abas button { border: 1px solid transparent; border-bottom: none; border-radius: 3px 3px 0 0; background: transparent; color: var(--navy); padding: 0.45rem 0.9rem; font-weight: bold; margin-bottom: -2px; }
+.abas button[aria-selected=true] { background: var(--navy); color: #FFFFFF; }
+.abas.secundarias { border-bottom-width: 1px; border-bottom-color: var(--borda); }
+.abas.secundarias button { font-weight: normal; padding: 0.35rem 0.7rem; margin-bottom: -1px; }
+.abas.secundarias button[aria-selected=true] { background: var(--fundo-1); color: var(--navy); border-color: var(--borda); font-weight: bold; }
+.abas .contagem { display: inline-block; min-width: 1.4rem; padding: 0 0.3rem; margin-left: 0.3rem; border-radius: 9px; background: rgba(0, 149, 217, 0.15); font-size: 0.75rem; text-align: center; }
+.modulos { padding: 0.6rem 1.25rem 0; }
+
+main { padding: 0.75rem 1.25rem 1rem; }
+
+/* Cartões */
+.cartao { border: 1px solid var(--borda); border-radius: 4px; padding: 0.75rem 0.9rem; background: #FFFFFF; margin-bottom: 0.9rem; min-width: 0; }
+.cartao > h2 { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.badge-num { display: inline-flex; align-items: center; justify-content: center; width: 1.45rem; height: 1.45rem; border-radius: 3px; background: var(--navy); color: #FFFFFF; font-size: 0.8rem; }
+.grade { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 0.9rem; }
+.grade-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1.25fr); gap: 0.9rem; align-items: start; }
+@media (max-width: 1100px) { .grade-3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .grade-3 > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 820px) { .grade, .grade-3 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Caixas de destaque */
+.regra { position: sticky; top: 0; z-index: 4; margin: 0.6rem 1.25rem 0; padding: 0.5rem 0.8rem; background: var(--fundo-1); border-left: 4px solid var(--azul); font-size: 0.85rem; }
+.regra strong { color: var(--navy); }
+.info { background: var(--fundo-2); border-left: 4px solid var(--azul); padding: 0.45rem 0.7rem; margin: 0.5rem 0; font-size: 0.82rem; }
+.alerta-caixa { background: #FFFFFF; border: 2px solid var(--vermelho); border-radius: 4px; padding: 0.55rem 0.75rem; margin: 0.6rem 0; }
+.alerta-caixa h3 { color: var(--vermelho); margin-bottom: 0.3rem; }
+.alerta-caixa ol { margin: 0.2rem 0 0.2rem 1.2rem; padding: 0; }
+.pendente { background: #FFF8E5; border-left: 4px solid #B07A00; padding: 0.45rem 0.7rem; margin: 0.5rem 0; font-size: 0.8rem; }
+
+/* Contadores */
+.contadores { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem; margin-bottom: 0.9rem; }
+.contador { border: 1px solid var(--borda); border-top: 4px solid var(--navy); border-radius: 4px; padding: 0.45rem 0.7rem; background: #FFFFFF; }
+.contador .valor { font-size: 1.5rem; font-weight: bold; color: var(--navy); line-height: 1.1; }
+.contador .rotulo { font-size: 0.78rem; color: var(--texto-2); }
+.contador.urg { border-top-color: var(--navy); }
+.contador.pref { border-top-color: var(--azul); }
+.contador.ger { border-top-color: #7A8796; }
+.contador.alerta { border-top-color: var(--vermelho); }
+.contador.alerta .valor { color: var(--vermelho); }
+@media (max-width: 820px) { .contadores { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Tabelas */
+.tabela-rolagem { overflow-x: auto; border: 1px solid var(--borda); border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+th { background: var(--azul-escuro); color: #FFFFFF; text-align: left; font-weight: bold; padding: 0.4rem 0.5rem; white-space: nowrap; position: sticky; top: 0; }
+td { padding: 0.35rem 0.5rem; border-top: 1px solid #E3E8EE; vertical-align: top; }
+tbody tr:nth-child(even) { background: var(--zebra); }
+tbody tr.clicavel { cursor: pointer; }
+tbody tr.clicavel:hover { background: var(--fundo-2); }
+td.vazio { text-align: center; color: var(--texto-2); padding: 1rem; }
+td.dias { text-align: right; font-variant-numeric: tabular-nums; }
+.tabela-alta { max-height: 26rem; overflow-y: auto; }
+
+/* Selos */
+.selo { display: inline-block; font-size: 0.7rem; font-weight: bold; padding: 0.05rem 0.35rem; border-radius: 3px; border: 1px solid var(--borda); color: var(--texto-2); background: #FFFFFF; white-space: nowrap; margin: 0.05rem 0.15rem 0.05rem 0; }
+.selo.sigilo { border-color: var(--navy); color: var(--navy); }
+.selo.urg { background: var(--navy); color: #FFFFFF; border-color: var(--navy); }
+.selo.pref { background: var(--fundo-1); color: var(--navy); border-color: var(--azul); }
+.selo.alerta { border-color: var(--vermelho); color: var(--vermelho); }
+.selo.ok { border-color: var(--ok); color: var(--ok); }
+.selo.revisar { border-color: #B07A00; color: #8A5F00; background: #FFF8E5; }
+.alertas-celula { color: var(--vermelho); font-size: 0.78rem; }
+.alertas-celula div + div { margin-top: 0.1rem; }
+.sugestao { color: var(--azul-escuro); font-size: 0.78rem; }
+
+/* Diálogos */
+dialog { border: 1px solid var(--navy); border-radius: 4px; padding: 0; width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); color: var(--texto); }
+dialog::backdrop { background: rgba(0, 19, 51, 0.45); }
+.dlg-topo { background: var(--navy); color: #FFFFFF; padding: 0.55rem 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.dlg-topo h2 { color: #FFFFFF; }
+.dlg-topo button { background: transparent; color: #FFFFFF; border-color: #FFFFFF; }
+.dlg-corpo { padding: 0.75rem 0.9rem; overflow-y: auto; max-height: calc(100vh - 170px); }
+.dlg-rodape { padding: 0.55rem 0.9rem; border-top: 1px solid var(--borda); display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+fieldset { border: 1px solid var(--borda); border-radius: 3px; margin: 0.5rem 0; padding: 0.45rem 0.7rem; }
+legend { font-weight: bold; color: var(--navy); font-size: 0.82rem; padding: 0 0.3rem; }
+
+/* Texto de ato */
+.texto-ato { font-family: var(--fonte-ato); font-size: 1rem; line-height: 1.5; text-align: justify; white-space: pre-wrap; border: 1px solid var(--borda); padding: 0.75rem 0.9rem; background: #FFFFFF; position: relative; min-height: 6rem; }
+.texto-ato.rascunho { background: repeating-linear-gradient(-45deg, #FFFFFF, #FFFFFF 14px, #FDF1F1 14px, #FDF1F1 28px); }
+.tarja { display: block; text-align: center; font-family: var(--fonte); font-weight: bold; font-size: 0.85rem; color: #FFFFFF; background: var(--vermelho); padding: 0.25rem; margin: -0.75rem -0.9rem 0.6rem; letter-spacing: 0.04em; }
+.literal { font-family: var(--fonte-ato); font-size: 0.95rem; text-align: justify; background: var(--fundo-2); padding: 0.5rem 0.65rem; border-left: 3px solid var(--azul); }
+textarea.modelo { font-family: var(--fonte-ato); font-size: 0.95rem; min-height: 7rem; }
+
+/* Rodapé */
+.rodape-fixo { position: sticky; bottom: 0; background: var(--navy); color: #FFFFFF; font-size: 0.76rem; padding: 0.4rem 1.25rem; z-index: 5; }
+.nota-lista { font-size: 0.76rem; color: var(--texto-2); margin-top: 0.45rem; }
+
+.aviso-flutuante { position: fixed; right: 1rem; bottom: 2.6rem; max-width: min(420px, calc(100vw - 32px)); background: var(--navy); color: #FFFFFF; padding: 0.55rem 0.8rem; border-radius: 4px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); z-index: 30; font-size: 0.85rem; }
+.aviso-flutuante.erro { background: var(--vermelho); }
+.aviso-flutuante.ok { background: var(--ok); }
+
+#area-impressao { display: none; }
+
+@media (max-width: 640px) {
+  .topo, main, .modulos { padding-left: 16px; padding-right: 16px; }
+  .regra { position: static; }
+  .topo-acoes { width: 100%; }
+  .regra { margin-left: 16px; margin-right: 16px; }
+  .rodape-fixo { padding-left: 16px; padding-right: 16px; }
+}
+
+@media print {
+  body { padding: 0; font-size: 10pt; }
+  .rodape-fixo, .topo-acoes, .nao-imprimir, dialog, .aviso-flutuante, .pular, button.editar { display: none !important; }
+  .regra { position: static; }
+  body.imprimindo > *:not(#area-impressao) { display: none !important; }
+  body.imprimindo #area-impressao { display: block; }
+  th { position: static; background: #FFFFFF !important; color: #000000; border-bottom: 2px solid #000000; }
+  tbody tr:nth-child(even) { background: #FFFFFF; }
+  td { border-top: 1px solid #999999; }
+  .impressao-cab { border-bottom: 2px solid #000000; margin-bottom: 0.4cm; padding-bottom: 0.2cm; }
+  .impressao-cab h1 { font-size: 13pt; color: #000000; }
+  .impressao-rodape { margin-top: 0.4cm; font-size: 8pt; border-top: 1px solid #000000; padding-top: 0.15cm; }
+  @page { margin: 1.5cm 1.2cm; }
+}
